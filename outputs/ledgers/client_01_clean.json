@@ -1,0 +1,71 @@
+{
+  "client": "Margaret Hughes",
+  "risk_profile": "4 (moderate)",
+  "accounts": [
+    {
+      "account_id": "H-ISA-01",
+      "owner": "Margaret Hughes",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 52000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H-CASH-01",
+      "owner": "Margaret Hughes",
+      "type": "Cash Account",
+      "platform": "Holloway",
+      "value": 25000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": false,
+      "approximate": false,
+      "value_source": "db"
+    }
+  ],
+  "actions": [
+    {
+      "text": "top up existing Stocks & Shares ISA",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    }
+  ],
+  "external_funds": [],
+  "disposal": false,
+  "charges": {
+    "initial": "0%",
+    "platform_ongoing": null,
+    "advice_ongoing": null
+  },
+  "gaps": [
+    {
+      "field": "platform charge",
+      "reason": "ongoing platform charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "advice charge",
+      "reason": "ongoing advice charge to confirm",
+      "section": "Fees & Charges"
+    }
+  ],
+  "objectives": [
+    "retired",
+    "no income required from the portfolio",
+    "long-term growth"
+  ],
+  "amounts": [
+    20000.0
+  ],
+  "guidance": [
+    "Client mentioned potential future gifting to grandchildren but clarified no action should be taken on this"
+  ],
+  "conflicts": []
+}

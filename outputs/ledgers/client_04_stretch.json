@@ -1,0 +1,233 @@
+{
+  "client": "James & Caroline Whitmore",
+  "risk_profile": "balanced to moderate",
+  "accounts": [
+    {
+      "account_id": "H4-ISA-J",
+      "owner": "James Whitmore",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 85000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H4-GIA-HJ",
+      "owner": "Joint",
+      "type": "General Investment Account",
+      "platform": "Holloway",
+      "value": 255000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-05-20",
+      "status": "open",
+      "in_scope": true,
+      "approximate": true,
+      "value_source": "observed"
+    },
+    {
+      "account_id": "B4-SIPP-J",
+      "owner": "James Whitmore",
+      "type": "SIPP",
+      "platform": "Brightwell",
+      "value": 610000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "B4-GIA-J",
+      "owner": "Joint",
+      "type": "General Investment Account",
+      "platform": "Brightwell",
+      "value": 95000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "M4-BOND-J",
+      "owner": "Joint",
+      "type": "Offshore Investment Bond",
+      "platform": "Meridian",
+      "value": 180000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "M4-CASH-J",
+      "owner": "James Whitmore",
+      "type": "Cash Account",
+      "platform": "Meridian",
+      "value": 30000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H4-ISA-C",
+      "owner": "Caroline Whitmore",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 82000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "B4-SIPP-C",
+      "owner": "Caroline Whitmore",
+      "type": "SIPP",
+      "platform": "Brightwell",
+      "value": 430000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "M4-CASH-C",
+      "owner": "Caroline Whitmore",
+      "type": "Cash Account",
+      "platform": "Meridian",
+      "value": null,
+      "currency": "GBP",
+      "valuation_date": null,
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "M4-OLD-C",
+      "owner": "Caroline Whitmore",
+      "type": "Cash Account",
+      "platform": "Meridian",
+      "value": 0.0,
+      "currency": "GBP",
+      "valuation_date": "2025-11-30",
+      "status": "closed",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    }
+  ],
+  "actions": [
+    {
+      "text": "disinvest the joint GIA in full",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
+    },
+    {
+      "text": "top up both ISAs equally",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "contribute to SIPPs up to appropriate levels",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "add to Holloway joint GIA",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "place remaining balance into new joint account",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    }
+  ],
+  "external_funds": [
+    {
+      "label": "Completion payment",
+      "amount": 850000.0,
+      "available": true,
+      "note": "Completion payment received, £200,000 committed to bridging loan repayment"
+    },
+    {
+      "label": "Earnout",
+      "amount": 400000.0,
+      "available": false,
+      "note": "Contingent on business performance"
+    }
+  ],
+  "disposal": true,
+  "charges": {
+    "initial": "0.5%",
+    "platform_ongoing": null,
+    "advice_ongoing": null
+  },
+  "gaps": [
+    {
+      "field": "M4-CASH-C value",
+      "reason": "balance not captured at snapshot; to be confirmed",
+      "section": "Background & Objectives"
+    },
+    {
+      "field": "platform charge",
+      "reason": "ongoing platform charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "advice charge",
+      "reason": "ongoing advice charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "capital gains tax",
+      "reason": "liability on the disposal to be confirmed by adviser",
+      "section": "Tax Implications"
+    }
+  ],
+  "objectives": [
+    "long-term growth",
+    "balanced-to-moderate risk appetite",
+    "no income requirement from the portfolio",
+    "build a tax-efficient base for future income"
+  ],
+  "amounts": [
+    850000.0
+  ],
+  "guidance": [
+    "Confirm Caroline's Meridian cash balance",
+    "Confirm timing of bridging-loan repayment",
+    "Do not act on future school fees or charitable donations",
+    "Revisit offshore bond at next review"
+  ],
+  "conflicts": [
+    {
+      "field": "H4-GIA-HJ.value",
+      "chose": "255000 @ 2026-05-20 (observed)",
+      "over": "240000 @ 2026-02-28 (db snapshot)",
+      "rule": "most-recent-valuation-wins"
+    }
+  ]
+}

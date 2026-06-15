@@ -1,0 +1,102 @@
+{
+  "client": "David & Susan Clarke",
+  "risk_profile": "5 (balanced)",
+  "accounts": [
+    {
+      "account_id": "H-ISA-D",
+      "owner": "David Clarke",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 61000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H-GIA-J",
+      "owner": "Joint",
+      "type": "General Investment Account",
+      "platform": "Holloway",
+      "value": 45000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-05-14",
+      "status": "open",
+      "in_scope": true,
+      "approximate": true,
+      "value_source": "observed"
+    },
+    {
+      "account_id": "H-ISA-S",
+      "owner": "Susan Clarke",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 58500.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    }
+  ],
+  "actions": [
+    {
+      "text": "disinvest the joint GIA in full",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
+    },
+    {
+      "text": "top up both ISAs equally",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    }
+  ],
+  "external_funds": [],
+  "disposal": true,
+  "charges": {
+    "initial": "0%",
+    "platform_ongoing": null,
+    "advice_ongoing": null
+  },
+  "gaps": [
+    {
+      "field": "platform charge",
+      "reason": "ongoing platform charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "advice charge",
+      "reason": "ongoing advice charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "capital gains tax",
+      "reason": "liability on the disposal to be confirmed by adviser",
+      "section": "Tax Implications"
+    }
+  ],
+  "objectives": [
+    "both retired",
+    "no income required from the portfolio",
+    "long-term growth"
+  ],
+  "amounts": [
+    40000.0
+  ],
+  "guidance": [
+    "capital gains position to consider from disposal of GIA"
+  ],
+  "conflicts": [
+    {
+      "field": "H-GIA-J.value",
+      "chose": "45000 @ 2026-05-14 (observed)",
+      "over": "40000 @ 2026-03-15 (db snapshot)",
+      "rule": "most-recent-valuation-wins"
+    }
+  ]
+}

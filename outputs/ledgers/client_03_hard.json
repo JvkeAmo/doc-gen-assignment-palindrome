@@ -1,0 +1,135 @@
+{
+  "client": "Robert Fletcher & Jean Fletcher",
+  "risk_profile": "4 (moderate)",
+  "accounts": [
+    {
+      "account_id": "H-ISA-R",
+      "owner": "Robert Fletcher",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 70000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H-GIA-JF",
+      "owner": "Joint",
+      "type": "General Investment Account",
+      "platform": "Holloway",
+      "value": 38000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-05-16",
+      "status": "open",
+      "in_scope": true,
+      "approximate": true,
+      "value_source": "observed"
+    },
+    {
+      "account_id": "H-ISA-JE",
+      "owner": "Jean Fletcher",
+      "type": "Stocks & Shares ISA",
+      "platform": "Holloway",
+      "value": 66000.0,
+      "currency": "GBP",
+      "valuation_date": "2026-04-30",
+      "status": "open",
+      "in_scope": true,
+      "approximate": false,
+      "value_source": "db"
+    },
+    {
+      "account_id": "H-CASH-JE",
+      "owner": "Jean Fletcher",
+      "type": "Cash Account",
+      "platform": "Holloway",
+      "value": null,
+      "currency": "GBP",
+      "valuation_date": null,
+      "status": "open",
+      "in_scope": false,
+      "approximate": false,
+      "value_source": "db"
+    }
+  ],
+  "actions": [
+    {
+      "text": "disinvest the joint GIA in full",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
+    },
+    {
+      "text": "top up both ISAs equally",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "confirm the cash account balance",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "open a new jointly-held investment account",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    }
+  ],
+  "external_funds": [
+    {
+      "label": "Inheritance from Jean's mother",
+      "amount": 120000.0,
+      "available": true,
+      "note": "sensitively handled"
+    }
+  ],
+  "disposal": true,
+  "charges": {
+    "initial": "0.5%",
+    "platform_ongoing": null,
+    "advice_ongoing": null
+  },
+  "gaps": [
+    {
+      "field": "platform charge",
+      "reason": "ongoing platform charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "advice charge",
+      "reason": "ongoing advice charge to confirm",
+      "section": "Fees & Charges"
+    },
+    {
+      "field": "capital gains tax",
+      "reason": "liability on the disposal to be confirmed by adviser",
+      "section": "Tax Implications"
+    }
+  ],
+  "objectives": [
+    "long-term growth",
+    "no income required from the portfolio",
+    "planning a trip for grandchildren"
+  ],
+  "amounts": [
+    120000.0,
+    30000.0
+  ],
+  "guidance": [
+    "Inheritance following the recent death of Jean's mother. Reference its origin with appropriate sensitivity."
+  ],
+  "conflicts": [
+    {
+      "field": "H-GIA-JF.value",
+      "chose": "38000 @ 2026-05-16 (observed)",
+      "over": "30000 @ 2026-03-10 (db snapshot)",
+      "rule": "most-recent-valuation-wins"
+    }
+  ]
+}
