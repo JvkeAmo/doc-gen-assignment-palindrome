@@ -117,6 +117,7 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
         charges=Charges(initial=facts.initial_charge),
         gaps=gaps,
         objectives=facts.objectives,
+        amounts=facts.investment_amounts,
         guidance=facts.guidance,
         conflicts=conflicts,
     )

@@ -32,7 +32,7 @@
       "placeholders": {
         "recommendation": {
           "source": "llm",
-          "prompt": "Describe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved where they are given. Do NOT state numeric fee rates or tax amounts."
+          "prompt": "Describe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved only where they are explicitly given. Do NOT compute or assert any new figure (do not add balances together or project future/post-transaction values). Do NOT state numeric fee rates or tax amounts."
         }
       }
     },

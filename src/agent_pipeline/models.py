@@ -104,6 +104,7 @@ class ClientLedger(BaseModel):
     charges: Charges = Field(default_factory=Charges)
     gaps: list[Gap] = Field(default_factory=list)
     objectives: list[str] = Field(default_factory=list)  # high-level circumstances (no amounts)
+    amounts: list[float] = Field(default_factory=list)  # headline figures stated in the sources
     guidance: list[str] = Field(default_factory=list)  # per-client notes (fde_notes "## This client")
     conflicts: list[Conflict] = Field(default_factory=list)
 

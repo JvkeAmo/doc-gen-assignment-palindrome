@@ -19,9 +19,14 @@ from agent_pipeline.models import Account, ClientLedger, Gap
 
 # --- helpers ---------------------------------------------------------------------------------
 
-def _money(account: Account) -> str:
+def _money(account: Account, ledger: ClientLedger | None = None) -> str:
     if account.value is None:
-        return "to be confirmed"
+        # Surface the matching gap as a visible flag, never a blank or a guess.
+        if ledger:
+            for gap in ledger.gaps:
+                if gap.field.startswith(account.account_id):
+                    return gap.marker()
+        return "[FLAG: balance to be confirmed]"
     text = f"£{account.value:,.0f}"
     return f"{text} (approx.)" if account.approximate else text
 
@@ -57,7 +62,7 @@ def render_scope(ledger: ClientLedger) -> str:
 def render_holdings_table(ledger: ClientLedger) -> str:
     rows = ["| Account | Owner | Type | Value |", "|---|---|---|---|"]
     for a in ledger.scoped_accounts():
-        rows.append(f"| {a.account_id} | {a.owner} | {a.type} | {_money(a)} |")
+        rows.append(f"| {a.account_id} | {a.owner} | {a.type} | {_money(a, ledger)} |")
     return "\n".join(rows)
 
 
@@ -113,9 +118,11 @@ def _recommendation_context(ledger: ClientLedger) -> str:
         lines.append("Recommended actions:")
         for a in ledger.actions:
             lines.append(f"- {a.text}")
-    accts = [f"{a.type} ({a.account_id}) currently {_money(a)}" for a in ledger.scoped_accounts()]
+    accts = [f"{a.type} ({a.account_id}) currently {_money(a, ledger)}" for a in ledger.scoped_accounts()]
     if accts:
         lines.append("Account values:\n" + "\n".join(f"- {a}" for a in accts))
+    if ledger.amounts:
+        lines.append("Amounts involved: " + ", ".join(f"£{a:,.0f}" for a in ledger.amounts))
     if ledger.external_funds:
         lines.append("Other funds:")
         for f in ledger.external_funds:

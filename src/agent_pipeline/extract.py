@@ -51,6 +51,7 @@ class ExtractedFacts(BaseModel):
     initial_charge: str | None = None
     scope_account_ids: list[str] = Field(default_factory=list)
     objectives: list[str] = Field(default_factory=list)  # high-level circumstances, no amounts
+    investment_amounts: list[float] = Field(default_factory=list)  # headline figures stated in sources
     actions: list[str] = Field(default_factory=list)
     live_values: list[LiveValue] = Field(default_factory=list)
     external_funds: list[ExternalFundLite] = Field(default_factory=list)
@@ -134,6 +135,9 @@ def _build_extract_prompt(accounts: list[Account], prose_sources: dict[str, str]
         '  "objectives": short HIGH-LEVEL phrases about the client\'s circumstances and objectives '
         '(e.g. "both retired", "no income required from the portfolio", "long-term growth"). Do '
         "NOT include any amounts here;\n"
+        '  "investment_amounts": list of headline monetary amounts explicitly stated for this '
+        "recommendation (e.g. a top-up or investment figure such as 20000). Numbers only, no "
+        "computed totals;\n"
         '  "actions": short phrases describing what the client should do (e.g. "disinvest the '
         'joint GIA in full", "top up both ISAs equally");\n'
         '  "live_values": list of {account_id, description, value, as_of, note} for any account '
