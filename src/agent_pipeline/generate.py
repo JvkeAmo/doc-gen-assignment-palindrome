@@ -21,6 +21,7 @@ from agent_pipeline.ocr import read_image_text
 from agent_pipeline.reconcile import reconcile
 from agent_pipeline.render import fill_placeholder
 from agent_pipeline.triage import Role, triage_folder
+from agent_pipeline.verify import check_report
 from document_formatter.formatting import format_document
 
 
@@ -81,6 +82,14 @@ def main() -> None:
     out_path = args.output_dir / f"{args.client}.md"
     out_path.write_text(report, encoding="utf-8")
     print(f"Wrote {out_path}")
+
+    problems = check_report(report, ledger)
+    if problems:
+        print(f"  verification: {len(problems)} issue(s):")
+        for problem in problems:
+            print(f"    - {problem}")
+    else:
+        print("  verification: PASS")
 
     if args.ledger_dir:
         args.ledger_dir.mkdir(parents=True, exist_ok=True)

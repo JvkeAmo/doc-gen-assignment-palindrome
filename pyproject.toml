@@ -26,3 +26,7 @@ packages = ["src/agent_pipeline", "src/document_formatter"]
 
 [tool.ruff]
 src = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
