@@ -1,6 +1,6 @@
 {
   "document_title": "Investment Advice Report",
-  "global_instructions": "You are writing sections of a financial advice report addressed to the client. Write in clear British English, in the first person ('we'). Output only the text for the section itself, with no extra headings or commentary.",
+  "global_instructions": "You are writing one section of a financial advice report addressed to the client. Write in clear British English, first person plural ('we'). Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.",
   "sections": [
     {
       "id": "introduction",
@@ -8,9 +8,7 @@
       "use_if": "always",
       "template": "Further to our recent discussions, we are writing to set out our advice in relation to <<scope>>. This advice is based on the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.",
       "placeholders": {
-        "scope": {
-          "prompt": "Say which of the client's accounts this report relates to."
-        }
+        "scope": { "source": "render:scope" }
       }
     },
     {
@@ -20,11 +18,10 @@
       "template": "<<summary>>\n\nThe accounts covered by this report are as follows:\n\n<<holdings_table>>",
       "placeholders": {
         "summary": {
-          "prompt": "Summarise the client's objectives and circumstances."
+          "source": "llm",
+          "prompt": "In two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully."
         },
-        "holdings_table": {
-          "prompt": "List the client's accounts and their values as a markdown table."
-        }
+        "holdings_table": { "source": "render:holdings_table" }
       }
     },
     {
@@ -34,19 +31,18 @@
       "template": "We recommend the following:\n\n<<recommendation>>",
       "placeholders": {
         "recommendation": {
-          "prompt": "Describe what the client should do with their investments, and why."
+          "source": "llm",
+          "prompt": "Describe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved where they are given. Do NOT state numeric fee rates or tax amounts."
         }
       }
     },
     {
       "id": "tax_implications",
       "title": "Tax Implications",
-      "use_if": "Include this section when the recommendation involves selling investments that could be taxable.",
+      "use_if": "disposal",
       "template": "<<cgt_statement>>",
       "placeholders": {
-        "cgt_statement": {
-          "prompt": "Estimate the capital gains tax arising from the recommended sales. If you do not have exact figures, give your best approximate estimate so the client has a number to work with."
-        }
+        "cgt_statement": { "source": "render:cgt_statement" }
       }
     },
     {
@@ -55,21 +51,15 @@
       "use_if": "always",
       "template": "<<fees>>",
       "placeholders": {
-        "fees": {
-          "prompt": "Set out the ongoing fees and charges that apply to the client's investments."
-        }
+        "fees": { "source": "render:fees" }
       }
     },
     {
       "id": "conclusion",
       "title": "Conclusion",
       "use_if": "always",
-      "template": "<<risk_warning>>\n\nIf you are happy to proceed with our recommendations, please let us know and we will implement them for you.",
-      "placeholders": {
-        "risk_warning": {
-          "prompt": "Add the standard risk warning about investments."
-        }
-      }
+      "template": "The value of investments can fall as well as rise and you may get back less than you invest. Past performance is not a guide to future returns.\n\nIf you are happy to proceed with our recommendations, please let us know and we will implement them for you.",
+      "placeholders": {}
     }
   ]
 }
