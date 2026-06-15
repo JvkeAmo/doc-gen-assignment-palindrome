@@ -58,6 +58,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "openai" },
+    { name = "pydantic" },
     { name = "python-docx" },
     { name = "python-dotenv" },
 ]
@@ -70,6 +71,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "openai", specifier = ">=1.40" },
+    { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "python-docx", specifier = ">=1.1" },
     { name = "python-dotenv", specifier = ">=1.0" },

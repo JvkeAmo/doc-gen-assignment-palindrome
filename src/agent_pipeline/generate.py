@@ -6,12 +6,12 @@ Usage:
 
 import argparse
 import json
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from agent_pipeline.llm import build_client, model_name, strip_thinking
 from document_formatter.formatting import format_document
 from document_formatter.loading import read_file
 
@@ -64,7 +64,7 @@ class ReportGenerator:
                 {"role": "user", "content": f"{context}\n\n---\n\n{instruction}"}
             ],
         )
-        return response.choices[0].message.content.strip()
+        return strip_thinking(response.choices[0].message.content)
 
 
 def read_client_context(client_dir: Path, filenames: list[str]) -> str:
@@ -88,7 +88,7 @@ def main() -> None:
     args = parser.parse_args()
 
     load_dotenv()
-    generator = ReportGenerator(OpenAI(), os.environ.get("OPENAI_MODEL", "gpt-4o-mini"))
+    generator = ReportGenerator(build_client(), model_name())
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
     client_dir = args.data_dir / args.client
