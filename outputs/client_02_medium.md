@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-David & Susan Clarke, both retired and seeking long-term growth for their portfolio without requiring income from it, have a balanced risk profile. Their investment approach spans Stocks & Shares ISAs, a General Investment Account, and they are advised to consider the potential capital gains implications from the disposal of their General Investment Account holdings.
+David and Susan Clarke, both retired and with no current income requirements, seek to maintain a balanced risk approach across their investments. Their objectives focus on preserving capital and ensuring alignment with their agreed risk profile, while capital gains arising from the disposal of the GIA and associated ongoing charges will be detailed in the report.
 
 The accounts covered by this report are as follows:
 
@@ -22,7 +22,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA in full and using the proceeds to top up both ISAs equally. The total amount to be allocated is £40,000, with each ISA receiving £20,000.
+We recommend disinvesting the joint GIA in full, using the proceeds to top up both ISAs equally. The Stocks & Shares ISA (H-ISA-D) currently holds £61,000, while the Stocks & Shares ISA (H-ISA-S) currently holds £58,500. To achieve equal top-ups, the amount allocated to each ISA should be based on the proportion of their current values relative to the total ISA holdings. We also advise considering the capital gains position arising from the disposal of the GIA, as this may impact tax considerations.
 
 ## Tax Implications
 

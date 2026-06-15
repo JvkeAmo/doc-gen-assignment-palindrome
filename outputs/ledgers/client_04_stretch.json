@@ -1,6 +1,6 @@
 {
-  "client": "James & Caroline Whitmore",
-  "risk_profile": "balanced to moderate",
+  "client": "James and Caroline Whitmore",
+  "risk_profile": "4 (balanced to moderate)",
   "accounts": [
     {
       "account_id": "H4-ISA-J",
@@ -135,19 +135,13 @@
   ],
   "actions": [
     {
-      "text": "disinvest the joint GIA in full",
-      "refs": [],
-      "is_disposal": true,
-      "amount": null
-    },
-    {
-      "text": "top up both ISAs equally",
+      "text": "use both ISA allowances for new tax year",
       "refs": [],
       "is_disposal": false,
       "amount": null
     },
     {
-      "text": "contribute to SIPPs up to appropriate levels",
+      "text": "make pension contributions to both SIPPs up to appropriate levels",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -159,7 +153,25 @@
       "amount": null
     },
     {
-      "text": "place remaining balance into new joint account",
+      "text": "place remaining balance into new jointly-held investment account",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "disinvest portion of Holloway joint GIA and rebalance",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
+    },
+    {
+      "text": "confirm Caroline's Meridian cash balance",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "confirm timing of bridging-loan repayment",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -167,16 +179,22 @@
   ],
   "external_funds": [
     {
-      "label": "Completion payment",
+      "label": "Completion payment solicitor's account",
       "amount": 850000.0,
       "available": true,
-      "note": "Completion payment received, £200,000 committed to bridging loan repayment"
+      "note": "Received in April 2026, pending transfer"
     },
     {
-      "label": "Earnout",
+      "label": "Deferred earnout",
       "amount": 400000.0,
       "available": false,
-      "note": "Contingent on business performance"
+      "note": "Contingent on business performance over two years"
+    },
+    {
+      "label": "Bridging loan repayment",
+      "amount": 200000.0,
+      "available": false,
+      "note": "Committed and due shortly"
     }
   ],
   "disposal": true,
@@ -208,19 +226,12 @@
     }
   ],
   "objectives": [
-    "long-term growth",
-    "balanced-to-moderate risk appetite",
-    "no income requirement from the portfolio",
-    "build a tax-efficient base for future income"
+    "long-term growth with balanced-to-moderate risk appetite",
+    "build tax-efficient base to replace James's income in three years"
   ],
-  "amounts": [
-    850000.0
-  ],
+  "amounts": [],
   "guidance": [
-    "Confirm Caroline's Meridian cash balance",
-    "Confirm timing of bridging-loan repayment",
-    "Do not act on future school fees or charitable donations",
-    "Revisit offshore bond at next review"
+    "Meeting note contains details on business-sale proceeds arriving in multiple forms and dates; investment plan must align with three-year income replacement goal."
   ],
   "conflicts": [
     {

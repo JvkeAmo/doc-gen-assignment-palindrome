@@ -1,6 +1,6 @@
 {
-  "client": "David & Susan Clarke",
-  "risk_profile": "5 (balanced)",
+  "client": "David Clarke and Susan Clarke",
+  "risk_profile": "balanced",
   "accounts": [
     {
       "account_id": "H-ISA-D",
@@ -54,6 +54,12 @@
       "refs": [],
       "is_disposal": false,
       "amount": null
+    },
+    {
+      "text": "consider capital gains position from GIA disposal",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
     }
   ],
   "external_funds": [],
@@ -82,14 +88,12 @@
   ],
   "objectives": [
     "both retired",
-    "no income required from the portfolio",
-    "long-term growth"
+    "no income required",
+    "maintain balanced risk approach"
   ],
-  "amounts": [
-    40000.0
-  ],
+  "amounts": [],
   "guidance": [
-    "capital gains position to consider from disposal of GIA"
+    "Capital gains from GIA disposal and ongoing charges to be detailed in report. No income requirements currently."
   ],
   "conflicts": [
     {

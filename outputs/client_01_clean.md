@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We are advising Margaret Hughes, a retired individual with a moderate risk tolerance, whose primary objective is to achieve long-term growth for her portfolio without requiring income from its assets. She has expressed a consideration for future gifting to her grandchildren, though she has clarified that no immediate action is required on this matter.
+Margaret Hughes is retired, does not require income, and is comfortable with a moderate risk profile. Her focus is on maintaining her current financial position while preserving capital within her Stocks & Shares ISA. No urgent action is required regarding gifting to grandchildren, as this does not currently impact her financial strategy.
 
 The accounts covered by this report are as follows:
 
@@ -20,7 +20,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend that you top up your existing Stocks & Shares ISA with £20,000 to take advantage of the tax-efficient growth offered by the ISA.
+We recommend transferring £20,000 from H-CASH-01 to H-ISA-01. This action will utilise the available ISA allowance and consolidate the existing holdings in the Stocks & Shares ISA (H-ISA-01), which currently stands at £52,000.
 
 ## Fees & Charges
 

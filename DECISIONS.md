@@ -45,8 +45,8 @@ section-inclusion gate did correctly omit Tax (no disposal).
 
 - **Triage** routes files by role and drops decoys (market update, portfolio pack) before they can
   reach a prompt.
-- **Extraction** parses the db deterministically (de-duping joint accounts) and reads the prose
-  sources + OCR'd images into one typed `ExtractedFacts` via a single LLM call.
+- **Extraction** parses the db deterministically (de-duping joint accounts) and reads each prose
+  source via its own focused LLM call (see "Per-source extraction" below).
 - **Reconciliation** applies house rules — recency-wins (with a conflict log), null→flag, finalise
   figures (CGT, fee rates) → flags, scope, disposal — into one `ClientLedger`.
 - **Generation** fills each section from a ledger slice: deterministic renderers for the holdings
@@ -67,8 +67,37 @@ is correct; the weak link is the 8b model's prose fidelity. The verifier *catche
 a stronger generation model, stricter prompts, and/or a critic→revise loop; netting committed money
 (client_04's £200k bridging) numerically; per-client guidance currently over-captures process notes.
 
+## Per-source extraction (not one big call)
+
+Each free-text source gets its own focused LLM call — the report request, the meeting note (+ internal
+notes), and any statement image — each anchored by the db account digest so entity-matching survives,
+then the partial `ExtractedFacts` are merged (first-non-null for scalars, union for lists).
+
+Why: a small model drops fewer fields on a tight, single-purpose JSON than on a sprawling 9-key one,
+and the calls are independent (parallelisable later). The shared db anchor preserves cross-source
+knowledge, and the expensive cross-referencing (recency, dedupe) happens deterministically in
+reconcile anyway. This split immediately surfaced two bugs the single call had hidden: a source
+returning `guidance` as a string (now coerced scalar→list) silently emptied a whole extraction, and
+`investment_amounts` was inferring the stale db value (now restricted to figures written explicitly in
+the document). Trade-off: ~3 sequential calls instead of 1 (extraction ~75–95s on `qwen3:8b`).
+
+## Why the work sits in `src/`, not only the config
+
+The brief says "most of your work goes in the config" — that describes the *starter's* design, where
+the pipeline is a dumb loop and prompts are the only lever. It also says "improve the pipeline; it's
+just llm calls". We deliberately moved logic (extraction, reconciliation, verification) into `src/`,
+because compliance-critical behaviour — verbatim text, "never invent a CGT figure", section inclusion —
+should be enforced by code, not left to a prompt's goodwill. The config still owns the report
+definition (sections, inclusion rules, the LLM prompts, verbatim text); the few prompts that remain are
+the ones that genuinely need a model, which is what makes iterating/tuning them tractable.
+
+## Run telemetry
+
+Every run writes `outputs/runs/<client>_<ts>.json` (per-stage timings, every prompt + response +
+latency, the ledger, the report) and appends to `outputs/runs/index.md`, for inspecting prompts,
+outputs and latency. Gitignored (local dev telemetry, not part of the deliverable).
+
 ## To take further (noted, not yet done)
-- Reconciliation as "LLM proposes, code checks": deterministic assertions over every mechanical
-  decision (recency-wins, dedupe, null→flag, scope match).
-- Verification doubling as both an offline eval and a pre-send guard.
-- A reflection (critic→revise) loop and prompt auto-tuning against the eval.
+- A reflection (critic→revise) loop wiring the verifier as critic, and prompt auto-tuning against the eval.
+- A deterministic funds-calculator tool (net client_04's £200k bridging; available-to-invest).
+- An exploratory pass for unrecognised documents (discovery + review flags).

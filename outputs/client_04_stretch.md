@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We aim to support James and Caroline Whitmore’s long-term growth objectives within a balanced-to-moderate risk framework, prioritising tax efficiency for future income without relying on current portfolio income. We should confirm Caroline’s Meridian cash balance and the timing of the bridging-loan repayment, while avoiding action on future school fees or charitable donations, and revisiting the offshore bond at the next review.
+We are supporting James and Caroline Whitmore in achieving long-term growth with a balanced-to-moderate risk appetite, while establishing a tax-efficient foundation to replace James’s income within three years. The investment strategy must accommodate the complexities of business-sale proceeds arriving in varied forms and timelines, ensuring alignment with their three-year income replacement objective.
 
 The accounts covered by this report are as follows:
 
@@ -28,7 +28,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA in full, which currently holds £255,000 and £95,000. The completion payment of £850,000 should be used to top up both ISAs equally, contribute to SIPPs up to appropriate levels, add to the Holloway joint GIA, and place any remaining balance into a new joint account.
+We recommend using both ISA allowances for the new tax year to maximise tax-efficient savings, as the existing Stocks & Shares ISA (H4-ISA-J) and (H4-ISA-C) are currently held at £85,000 and £82,000 respectively. We advise making pension contributions to both SIPPs up to appropriate levels, given the current balances of £610,000 and £430,000. Add to the Holloway joint GIA, which is currently valued at £255,000 (approx.), and place the remaining balance into a new jointly-held investment account. Disinvest a portion of the Holloway joint GIA and rebalance the portfolio as needed. Confirm Caroline’s Meridian cash balance, which is currently £30,000, and verify the timing of the bridging-loan repayment, which is committed and due shortly. Additionally, confirm the value of the unrecorded M4-CASH-C balance to ensure accurate account management.
 
 ## Tax Implications
 

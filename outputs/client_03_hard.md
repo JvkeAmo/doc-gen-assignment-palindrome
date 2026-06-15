@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We are supporting Robert and Jean Fletcher in pursuing long-term growth for their portfolio, with no immediate income requirements, while also considering their plan to fund a family trip for their grandchildren. A recent inheritance from Jean’s mother has been identified, and we are mindful of its significance in their financial planning.
+We are supporting Robert and Jean Fletcher in pursuing long-term growth with no immediate income requirements, aligned with their moderate risk tolerance. We will handle the inheritance from Jean’s mother with care, ensuring it is integrated sensitively into their financial plan. Their current holdings include Stocks & Shares ISAs and a General Investment Account.
 
 The accounts covered by this report are as follows:
 
@@ -22,7 +22,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA in full, as its current value is approximately £38,000. The inheritance of £120,000 should be used to top up both ISAs equally, ensuring the funds are allocated fairly. Please confirm the cash account balance of £30,000 to ensure accuracy. Additionally, we suggest opening a new jointly-held investment account to consolidate the investments.
+We recommend disinvesting the joint GIA in full, using the inheritance of £120,000 to top up both ISAs equally, and opening a new jointly-held investment account for the remaining balance. This approach ensures the inheritance is allocated efficiently while maintaining the tax advantages of the ISAs. The existing balances in the ISAs and the GIA are to be treated separately, with the inheritance used to equalise the ISA contributions before transferring the remaining funds to the new account.
 
 ## Tax Implications
 

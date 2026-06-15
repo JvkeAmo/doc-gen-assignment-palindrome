@@ -1,6 +1,6 @@
 {
-  "client": "Robert Fletcher & Jean Fletcher",
-  "risk_profile": "4 (moderate)",
+  "client": "Robert Fletcher and Jean Fletcher",
+  "risk_profile": "moderate",
   "accounts": [
     {
       "account_id": "H-ISA-R",
@@ -69,13 +69,7 @@
       "amount": null
     },
     {
-      "text": "confirm the cash account balance",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
-    },
-    {
-      "text": "open a new jointly-held investment account",
+      "text": "open a new jointly-held investment account for the balance",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -83,10 +77,10 @@
   ],
   "external_funds": [
     {
-      "label": "Inheritance from Jean's mother",
+      "label": "inheritance from Jean's mother's estate",
       "amount": 120000.0,
       "available": true,
-      "note": "sensitively handled"
+      "note": "Received and cleared; reference origin with sensitivity"
     }
   ],
   "disposal": true,
@@ -113,16 +107,13 @@
     }
   ],
   "objectives": [
-    "long-term growth",
-    "no income required from the portfolio",
-    "planning a trip for grandchildren"
+    "long-term growth with no income required"
   ],
   "amounts": [
-    120000.0,
-    30000.0
+    120000.0
   ],
   "guidance": [
-    "Inheritance following the recent death of Jean's mother. Reference its origin with appropriate sensitivity."
+    "Handle the inheritance sensitively following the recent death of Jean's mother"
   ],
   "conflicts": [
     {
