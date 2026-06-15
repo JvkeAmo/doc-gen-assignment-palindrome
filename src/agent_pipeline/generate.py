@@ -1,8 +1,8 @@
 """Generate an advice report for a client.
 
-Pipeline: triage the source files, extract facts (db deterministically, prose via one LLM call),
-reconcile them into a single ClientLedger, then generate each section from a slice of that ledger
-and assemble the document.
+Pipeline: triage the source files, extract facts (db deterministically, each prose source via its
+own focused LLM call), reconcile them into a single ClientLedger, then generate each section from a
+slice of that ledger and assemble the document. Every run writes telemetry to outputs/runs/.
 
 Usage:
     python -m agent_pipeline.generate --client client_01_clean
@@ -14,27 +14,54 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from agent_pipeline.extract import extract_facts, parse_db, read_sources
+from agent_pipeline.extract import extract_facts, parse_db
 from agent_pipeline.llm import build_client, model_name
 from agent_pipeline.models import ClientLedger
 from agent_pipeline.ocr import read_image_text
 from agent_pipeline.reconcile import reconcile
 from agent_pipeline.render import fill_placeholder
+from agent_pipeline.runlog import RunRecorder
 from agent_pipeline.triage import Role, triage_folder
 from agent_pipeline.verify import check_report
 from document_formatter.formatting import format_document
+from document_formatter.loading import read_file
 
 
-def build_ledger(client_dir: Path, client, model) -> ClientLedger:
-    """Triage → extract → reconcile → ClientLedger."""
-    grouped = triage_folder(client_dir)
-    image_text = {
-        p.name: read_image_text(p) for p in grouped.get(Role.IMAGE, [])
-    }
-    db_text, prose = read_sources(grouped, image_text)
-    accounts, _snapshot = parse_db(db_text)
-    facts = extract_facts(client, model, accounts, prose)
-    return reconcile(accounts, facts)
+def read_sources(grouped: dict[Role, list[Path]], image_text: dict[str, str]) -> dict[Role, str]:
+    """Read triaged files into text, grouped by role (decoys are excluded by triage)."""
+    out: dict[Role, str] = {}
+    for role, paths in grouped.items():
+        texts: list[str] = []
+        for path in paths:
+            if role in {Role.DB, Role.MEETING_NOTES, Role.REPORT_REQUEST, Role.GUIDANCE}:
+                texts.append(read_file(path))
+            elif role is Role.IMAGE and path.name in image_text:
+                texts.append(image_text[path.name])
+        if texts:
+            out[role] = "\n\n".join(texts)
+    return out
+
+
+def build_ledger(client_dir: Path, client, model, recorder: RunRecorder) -> ClientLedger:
+    """Triage → OCR → extract (per source) → reconcile → ClientLedger."""
+    with recorder.stage("triage"):
+        grouped = triage_folder(client_dir)
+
+    image_text: dict[str, str] = {}
+    if grouped.get(Role.IMAGE):
+        with recorder.stage("ocr"):
+            for path in grouped[Role.IMAGE]:
+                image_text[path.name] = read_image_text(path, recorder)
+
+    sources = read_sources(grouped, image_text)
+    db_text = sources.pop(Role.DB, "")
+    accounts, _snapshot = parse_db(db_text) if db_text else ([], None)
+
+    with recorder.stage("extract"):
+        facts = extract_facts(client, model, accounts, sources, recorder)
+    with recorder.stage("reconcile"):
+        ledger = reconcile(accounts, facts)
+    return ledger
 
 
 def section_applies(section: dict, ledger: ClientLedger) -> bool:
@@ -47,7 +74,7 @@ def section_applies(section: dict, ledger: ClientLedger) -> bool:
     return True
 
 
-def generate_report(config: dict, ledger: ClientLedger, client, model) -> str:
+def generate_report(config: dict, ledger: ClientLedger, client, model, recorder: RunRecorder) -> str:
     instructions = config.get("global_instructions", "")
     sections = []
     for section in config["sections"]:
@@ -55,7 +82,7 @@ def generate_report(config: dict, ledger: ClientLedger, client, model) -> str:
             continue
         content = section["template"]
         for name, spec in section.get("placeholders", {}).items():
-            value = fill_placeholder(name, spec, ledger, client, model, instructions)
+            value = fill_placeholder(name, spec, ledger, client, model, instructions, recorder)
             content = content.replace(f"<<{name}>>", value)
         sections.append({"title": section.get("title", ""), "content": content})
     return format_document(config, sections)
@@ -68,28 +95,35 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=Path("config/template_config.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"))
     parser.add_argument("--ledger-dir", type=Path, default=None, help="optional: also write the ledger JSON here")
+    parser.add_argument("--runs-dir", type=Path, default=Path("outputs/runs"), help="where run telemetry is written")
     args = parser.parse_args()
 
     load_dotenv()
     client = build_client()
     model = model_name()
+    recorder = RunRecorder(args.client, model)
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
-    ledger = build_ledger(args.data_dir / args.client, client, model)
-    report = generate_report(config, ledger, client, model)
+    ledger = build_ledger(args.data_dir / args.client, client, model, recorder)
+    with recorder.stage("generate"):
+        report = generate_report(config, ledger, client, model, recorder)
+    with recorder.stage("verify"):
+        problems = check_report(report, ledger)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     out_path = args.output_dir / f"{args.client}.md"
     out_path.write_text(report, encoding="utf-8")
     print(f"Wrote {out_path}")
 
-    problems = check_report(report, ledger)
     if problems:
         print(f"  verification: {len(problems)} issue(s):")
         for problem in problems:
             print(f"    - {problem}")
     else:
         print("  verification: PASS")
+
+    run_path = recorder.finalize(ledger, report, problems, args.runs_dir)
+    print(f"  run log: {run_path} ({recorder.stages})")
 
     if args.ledger_dir:
         args.ledger_dir.mkdir(parents=True, exist_ok=True)

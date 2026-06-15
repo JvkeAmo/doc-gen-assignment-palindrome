@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import base64
 import os
+import time
 from pathlib import Path
 
 from agent_pipeline.llm import build_client, strip_thinking
+from agent_pipeline.runlog import RunRecorder
 
 _OCR_PROMPT = (
     "Extract all text and tables from this account statement image as plain markdown. "
@@ -19,9 +21,10 @@ _OCR_PROMPT = (
 )
 
 
-def read_image_text(path: Path) -> str:
+def read_image_text(path: Path, recorder: RunRecorder | None = None) -> str:
     """Return OCR'd text for an image, or a short placeholder if OCR fails."""
     model = os.environ.get("OCR_MODEL", "deepseek-ocr:latest")
+    start = time.perf_counter()
     try:
         b64 = base64.b64encode(path.read_bytes()).decode()
         response = build_client().chat.completions.create(
@@ -37,6 +40,9 @@ def read_image_text(path: Path) -> str:
             ],
             temperature=0,
         )
-        return strip_thinking(response.choices[0].message.content)
+        text = strip_thinking(response.choices[0].message.content)
     except Exception as exc:  # noqa: BLE001 - OCR is best-effort
-        return f"[image OCR unavailable for {path.name}: {exc}]"
+        text = f"[image OCR unavailable for {path.name}: {exc}]"
+    if recorder is not None:
+        recorder.record_llm(f"ocr:{path.name}", _OCR_PROMPT, text, time.perf_counter() - start, model)
+    return text

@@ -41,7 +41,7 @@ def classify(path: Path) -> Role | None:
         return Role.DECOY
     if suffix in {".png", ".jpg", ".jpeg"}:
         return Role.IMAGE
-    if stem == "client_data_db" or suffix == ".json":
+    if stem == "client_data_db" or suffix == ".json": #NOTE: probably can't do suffix == '.json' as you may in the future get other json files
         return Role.DB
     if stem == "meeting_notes":
         return Role.MEETING_NOTES

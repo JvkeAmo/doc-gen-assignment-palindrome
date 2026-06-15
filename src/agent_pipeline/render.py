@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from openai import OpenAI
 
-from agent_pipeline.llm import complete
-from agent_pipeline.models import Account, ClientLedger, Gap
+from agent_pipeline.models import Account, ClientLedger
+from agent_pipeline.runlog import RunRecorder, timed_complete
 
 
 # --- helpers ---------------------------------------------------------------------------------
@@ -139,7 +139,13 @@ _LLM_CONTEXT = {
 
 
 def fill_placeholder(
-    name: str, spec: dict, ledger: ClientLedger, client: OpenAI, model: str, global_instructions: str
+    name: str,
+    spec: dict,
+    ledger: ClientLedger,
+    client: OpenAI,
+    model: str,
+    global_instructions: str,
+    recorder: RunRecorder | None = None,
 ) -> str:
     """Resolve one placeholder from its config spec."""
     source = spec.get("source", "llm")
@@ -149,4 +155,4 @@ def fill_placeholder(
     context_fn = _LLM_CONTEXT.get(name)
     context = context_fn(ledger) if context_fn else ""
     prompt = f"{global_instructions}\n\n{spec.get('prompt', '')}\n\nFacts:\n{context}"
-    return complete(client, model, prompt)
+    return timed_complete(recorder, f"generate:{name}", client, model, prompt)
