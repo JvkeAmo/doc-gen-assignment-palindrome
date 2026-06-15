@@ -103,9 +103,13 @@ class ClientLedger(BaseModel):
     disposal: bool = False
     charges: Charges = Field(default_factory=Charges)
     gaps: list[Gap] = Field(default_factory=list)
+    objectives: list[str] = Field(default_factory=list)  # high-level circumstances (no amounts)
     guidance: list[str] = Field(default_factory=list)  # per-client notes (fde_notes "## This client")
     conflicts: list[Conflict] = Field(default_factory=list)
 
     def scoped_accounts(self) -> list[Account]:
         """Accounts actually covered by this report (closed/out-of-scope excluded)."""
         return [a for a in self.accounts if a.in_scope and a.status != "closed"]
+
+    def objectives_text(self) -> str:
+        return "; ".join(self.objectives)

@@ -42,3 +42,34 @@ def strip_thinking(text: str | None) -> str:
     if not text:
         return ""
     return _THINK_RE.sub("", text).strip()
+
+
+def complete(
+    client: OpenAI,
+    model: str,
+    prompt: str,
+    *,
+    system: str | None = None,
+    as_json: bool = False,
+    temperature: float = 0.0,
+) -> str:
+    """Run one completion and return cleaned text.
+
+    Disables qwen3's reasoning preamble (via ``/no_think``) for speed and clean output, and
+    optionally requests a JSON object response.
+    """
+    user = prompt
+    if model.startswith("qwen3"):
+        user = f"{user}\n\n/no_think"
+
+    messages: list[dict] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": user})
+
+    kwargs: dict = {"temperature": temperature}
+    if as_json:
+        kwargs["response_format"] = {"type": "json_object"}
+
+    response = client.chat.completions.create(model=model, messages=messages, **kwargs)
+    return strip_thinking(response.choices[0].message.content)
