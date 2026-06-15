@@ -4,7 +4,7 @@ These cover the rules that matter most and need no model: db de-duplication, rec
 reconciliation, and the verification checks. Run with ``uv run pytest``.
 """
 
-from agent_pipeline.extract import ExtractedFacts, LiveValue, parse_db
+from agent_pipeline.extract import ExtractedFacts, LiveValue, merge_facts, parse_db
 from agent_pipeline.models import Account, ClientLedger, Gap
 from agent_pipeline.reconcile import reconcile
 from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report
@@ -59,6 +59,26 @@ def test_verify_catches_missing_verbatim_and_unsourced_figure():
     assert any("Risk warning" in p for p in problems)
     assert any("99000" in p for p in problems)  # invented figure flagged
     assert not any("61000" in p for p in problems)  # sourced figure is fine
+
+
+def test_extracted_facts_coerces_scalars_to_lists():
+    # Models sometimes return a bare string where a list is expected; it must not blow up.
+    facts = ExtractedFacts.model_validate(
+        {"guidance": "handle sensitively", "actions": "do one thing", "live_values": {"account_id": "X", "value": 1}}
+    )
+    assert facts.guidance == ["handle sensitively"]
+    assert facts.actions == ["do one thing"]
+    assert len(facts.live_values) == 1 and facts.live_values[0].account_id == "X"
+
+
+def test_merge_facts_unions_lists_and_keeps_first_scalar():
+    a = ExtractedFacts(selling=True, scope_account_ids=["A"], actions=["x"])
+    b = ExtractedFacts(risk_profile="4", scope_account_ids=["A", "B"], actions=["y"])
+    merged = merge_facts([a, b])
+    assert merged.selling is True
+    assert merged.risk_profile == "4"
+    assert merged.scope_account_ids == ["A", "B"]  # union, de-duped
+    assert merged.actions == ["x", "y"]
 
 
 def test_verify_passes_a_clean_report():

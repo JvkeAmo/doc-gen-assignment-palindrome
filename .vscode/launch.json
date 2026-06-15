@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Generate: client_01_clean",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.generate",
+      "args": ["--client", "client_01_clean", "--ledger-dir", "outputs/ledgers"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Generate: pick a client",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.generate",
+      "args": ["--client", "${input:client}", "--ledger-dir", "outputs/ledgers"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Evaluate (check outputs)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.evaluate",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": "client",
+      "type": "pickString",
+      "description": "Which client to generate?",
+      "options": [
+        "client_01_clean",
+        "client_02_medium",
+        "client_03_hard",
+        "client_04_stretch"
+      ],
+      "default": "client_02_medium"
+    }
+  ]
+}
