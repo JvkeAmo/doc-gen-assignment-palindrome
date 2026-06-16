@@ -14,9 +14,8 @@ from __future__ import annotations
 
 from openai import OpenAI
 
-from agent_pipeline.extract import _loads_json
 from agent_pipeline.funds import available_to_invest
-from agent_pipeline.llm import complete
+from agent_pipeline.llm import complete, loads_json
 from agent_pipeline.models import ClientLedger
 
 _JUDGE_SYSTEM = (
@@ -63,6 +62,6 @@ def judge_report(client: OpenAI, model: str, report: str, ledger: ClientLedger) 
     )
     raw = complete(client, model, prompt, system=_JUDGE_SYSTEM, as_json=True)
     try:
-        return _loads_json(raw)
+        return loads_json(raw)
     except Exception:  # noqa: BLE001 - judging is best-effort
         return {}

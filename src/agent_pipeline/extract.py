@@ -21,6 +21,7 @@ from datetime import date
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
+from agent_pipeline.llm import loads_json
 from agent_pipeline.models import Account
 from agent_pipeline.runlog import RunRecorder, timed_complete
 from agent_pipeline.triage import Role
@@ -193,25 +194,13 @@ def _statement_prompt(accounts: list[Account], text: str) -> str:
     )
 
 
-def _loads_json(raw: str) -> dict:
-    """Tolerant JSON parse: strip code fences and isolate the outermost object."""
-    text = raw.strip()
-    if text.startswith("```"):
-        text = text.strip("`")
-        text = text.split("\n", 1)[1] if "\n" in text else text
-    start, end = text.find("{"), text.rfind("}")
-    if start != -1 and end != -1:
-        text = text[start : end + 1]
-    return json.loads(text)
-
-
 def _extract_source(
     client: OpenAI, model: str, prompt: str, name: str, recorder: RunRecorder | None
 ) -> ExtractedFacts:
     """Run one focused per-source extraction call and parse it into ExtractedFacts."""
     raw = timed_complete(recorder, name, client, model, prompt, system=_EXTRACT_SYSTEM, as_json=True)
     try:
-        return ExtractedFacts.model_validate(_loads_json(raw))
+        return ExtractedFacts.model_validate(loads_json(raw))
     except (json.JSONDecodeError, ValidationError):
         return ExtractedFacts()  # fail soft: other sources + the db still yield a report
 

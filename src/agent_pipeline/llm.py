@@ -11,6 +11,7 @@ variables elsewhere (e.g. OpenAI) to switch provider without code changes.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 
@@ -42,6 +43,18 @@ def strip_thinking(text: str | None) -> str:
     if not text:
         return ""
     return _THINK_RE.sub("", text).strip()
+
+
+def loads_json(raw: str) -> dict:
+    """Tolerant JSON parse of a model response: strip code fences and isolate the outermost object."""
+    text = raw.strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        text = text.split("\n", 1)[1] if "\n" in text else text
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end != -1:
+        text = text[start : end + 1]
+    return json.loads(text)
 
 
 def complete(
