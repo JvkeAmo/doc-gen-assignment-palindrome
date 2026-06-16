@@ -16,6 +16,7 @@ from pathlib import Path
 from openai import OpenAI
 
 from agent_pipeline.llm import complete
+from agent_pipeline.models import ClientLedger
 
 
 class RunRecorder:
@@ -46,7 +47,9 @@ class RunRecorder:
             }
         )
 
-    def finalize(self, ledger, report: str, problems: list[str], runs_dir: Path) -> Path:
+    def finalize(
+        self, ledger: ClientLedger | None, report: str, problems: list[str], runs_dir: Path
+    ) -> Path:
         total = round(time.perf_counter() - self._t0, 2)
         record = {
             "client": self.client,

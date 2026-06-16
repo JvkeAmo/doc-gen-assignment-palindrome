@@ -9,7 +9,8 @@ object here means:
   * generation can only ever see clean, trusted facts (no decoys, no raw conflicts),
   * verification has a concrete contract to assert against.
 
-This is a first pass and will grow as the extraction/reconciliation stages land.
+The schema is kept deliberately small: every field is something reconciliation populates from the
+sources and the verifier can later assert the report against.
 """
 
 from __future__ import annotations

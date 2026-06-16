@@ -205,9 +205,10 @@ def _loads_json(raw: str) -> dict:
     return json.loads(text)
 
 
-def _run(
+def _extract_source(
     client: OpenAI, model: str, prompt: str, name: str, recorder: RunRecorder | None
 ) -> ExtractedFacts:
+    """Run one focused per-source extraction call and parse it into ExtractedFacts."""
     raw = timed_complete(recorder, name, client, model, prompt, system=_EXTRACT_SYSTEM, as_json=True)
     try:
         return ExtractedFacts.model_validate(_loads_json(raw))
@@ -244,10 +245,17 @@ def extract_facts(
     """Run a focused extraction call per source, then merge into one ExtractedFacts."""
     guidance = sources.get(Role.GUIDANCE, "")
     parts: list[ExtractedFacts] = []
+
     if Role.REPORT_REQUEST in sources:
-        parts.append(_run(client, model, _request_prompt(accounts, sources[Role.REPORT_REQUEST]), "extract:report_request", recorder))
+        prompt = _request_prompt(accounts, sources[Role.REPORT_REQUEST])
+        parts.append(_extract_source(client, model, prompt, "extract:report_request", recorder))
+
     if Role.MEETING_NOTES in sources:
-        parts.append(_run(client, model, _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance), "extract:meeting_notes", recorder))
+        prompt = _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance)
+        parts.append(_extract_source(client, model, prompt, "extract:meeting_notes", recorder))
+
     if Role.IMAGE in sources:
-        parts.append(_run(client, model, _statement_prompt(accounts, sources[Role.IMAGE]), "extract:statement", recorder))
+        prompt = _statement_prompt(accounts, sources[Role.IMAGE])
+        parts.append(_extract_source(client, model, prompt, "extract:statement", recorder))
+
     return merge_facts(parts)

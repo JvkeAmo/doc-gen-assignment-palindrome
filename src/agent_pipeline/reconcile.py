@@ -43,6 +43,14 @@ def _parse_date(value: str | None) -> date | None:
         return None
 
 
+def _apply_observed_value(account: Account, value: float, observed_date: date | None) -> None:
+    """Take an observed ("live") value onto an account, marking it approximate and source-tagged."""
+    account.value = value
+    account.valuation_date = observed_date
+    account.approximate = True
+    account.value_source = "observed"
+
+
 def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
     by_id = {a.account_id: a for a in accounts}
 
@@ -61,6 +69,7 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
         db_date = acc.valuation_date
         fresher = live_date and (db_date is None or live_date > db_date)
         if acc.value is not None and fresher and lv.value != acc.value:
+            # A fresher observation disagrees with the db snapshot: it wins, and we log why.
             conflicts.append(
                 Conflict(
                     field=f"{acc.account_id}.value",
@@ -69,13 +78,10 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
                     rule="most-recent-valuation-wins",
                 )
             )
-            acc.value, acc.valuation_date, acc.approximate, acc.value_source = (
-                lv.value, live_date, True, "observed",
-            )
+            _apply_observed_value(acc, lv.value, live_date)
         elif acc.value is None and lv.value is not None:
-            acc.value, acc.valuation_date, acc.approximate, acc.value_source = (
-                lv.value, live_date, True, "observed",
-            )
+            # The db had no figure at all; take the observed one (nothing to conflict with).
+            _apply_observed_value(acc, lv.value, live_date)
 
     # --- disposal flag (drives the Tax section) --------------------------------------------
     disposal = bool(facts.selling) or any(_is_disposal(a) for a in facts.actions)

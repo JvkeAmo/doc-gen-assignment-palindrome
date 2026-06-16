@@ -41,7 +41,10 @@ def classify(path: Path) -> Role | None:
         return Role.DECOY
     if suffix in {".png", ".jpg", ".jpeg"}:
         return Role.IMAGE
-    if stem == "client_data_db" or suffix == ".json": #NOTE: probably can't do suffix == '.json' as you may in the future get other json files
+    # Treat any .json as the custody db: the canonical file is client_data_db.json, and no client
+    # folder in the example data carries a second JSON. If a future client ever ships a non-db JSON
+    # this heuristic would misroute it — at that point, match on the stem alone.
+    if stem == "client_data_db" or suffix == ".json":
         return Role.DB
     if stem == "meeting_notes":
         return Role.MEETING_NOTES
