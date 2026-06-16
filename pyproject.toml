@@ -15,6 +15,7 @@ dependencies = [
 # starting scaffold needs to run.
 dev = [
     "pytest>=8.0",
+    "ruff>=0.12",
 ]
 
 [build-system]

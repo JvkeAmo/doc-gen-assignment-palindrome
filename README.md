@@ -46,7 +46,11 @@ can be run standalone over the generated artifacts:
 ```bash
 uv run python -m agent_pipeline.evaluate     # checks outputs/ against outputs/ledgers/
 uv run pytest                                 # deterministic unit tests
+uv run ruff check                             # lint
 ```
+
+The unit tests and lint are deterministic and need no LLM, so they run in CI
+(`.github/workflows/ci.yml`, `ruff check` + `pytest`) on every push and pull request.
 
 ## How it fits together
 
