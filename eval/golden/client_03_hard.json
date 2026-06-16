@@ -1,0 +1,16 @@
+{
+  "_comment": "Fresher GIA (38000 @ 2026-05-16); inheritance is external funds, not a db account. H-CASH-JE is out of report scope (not in report_request), so it is correctly NOT flagged here.",
+  "disposal": true,
+  "charges_initial": "0.5%",
+  "scope": ["H-ISA-R", "H-ISA-JE", "H-GIA-JF"],
+  "accounts": {
+    "H-ISA-R": { "value": 70000, "valuation_date": "2026-04-30", "status": "open" },
+    "H-ISA-JE": { "value": 66000, "valuation_date": "2026-04-30", "status": "open" },
+    "H-GIA-JF": { "value": 38000, "valuation_date": "2026-05-16", "status": "open" },
+    "H-CASH-JE": { "value": null, "valuation_date": null, "status": "open" }
+  },
+  "conflicts": ["H-GIA-JF"],
+  "external_funds": [{ "amount": 120000, "kind": "available" }],
+  "available_to_invest": 120000,
+  "gaps_include": ["capital gains tax", "platform charge", "advice charge"]
+}

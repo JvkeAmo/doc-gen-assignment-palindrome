@@ -21,13 +21,54 @@ RISK_WARNING = (
     "Past performance is not a guide to future returns."
 )
 
-# Figures from the general/decoy documents that must never reach a report.
-DECOY_FIGURES = ["312,000", "505,000", "515,000", "775,000", "525,000", "785,000", "312000"]
+def money_tokens(text: str) -> set[str]:
+    """Monetary amounts in the text, normalised to digits-only (e.g. '£45,000' -> '45000').
+
+    Catches any currency symbol (£ $ €) and also bare comma-grouped numbers like '22,500', so a
+    figure can't slip through just because the model used the wrong symbol or none at all.
+    """
+    tokens: set[str] = set()
+    for m in re.findall(r"[£$€]\s?(\d[\d,]*)", text):  # symbol-prefixed
+        tokens.add(m.replace(",", ""))
+    for m in re.findall(r"(?<![\d.,])\d{1,3}(?:,\d{3})+(?![\d.,])", text):  # comma-grouped, no symbol
+        tokens.add(m.replace(",", ""))
+    return tokens
 
 
-def _money_tokens(text: str) -> set[str]:
-    """All £-amounts in the text, normalised to digits-only (e.g. '£45,000' -> '45000')."""
-    return {m.replace(",", "") for m in re.findall(r"£\s?([\d,]+)", text)}
+def allowed_figures(ledger: ClientLedger) -> set[str]:
+    """The £-figures a report may legitimately state: ledger account values, external funds, amounts."""
+    known = {str(int(a.value)) for a in ledger.accounts if a.value is not None}
+    known |= {str(int(f.amount)) for f in ledger.external_funds if f.amount is not None}
+    known |= {str(int(a)) for a in ledger.amounts}
+    return known
+
+
+def critique_slot(name: str, text: str, ledger: ClientLedger) -> list[str]:
+    """Slot-scoped checks for a single generated prose fragment (used by the reflection loop).
+
+    Returns a list of problems phrased as feedback the model can act on.
+    """
+    problems: list[str] = []
+    figures = money_tokens(text)
+    if name == "summary":
+        # Background must stay high level — no monetary amounts at all.
+        if figures:
+            problems.append(
+                "The Background summary must stay high level and state NO monetary amounts; "
+                "remove every figure."
+            )
+    elif name == "recommendation":
+        allowed = allowed_figures(ledger)
+        unsourced = sorted(t for t in figures if t not in allowed)
+        if unsourced:
+            allowed_str = ", ".join(f"£{a}" for a in sorted(allowed)) or "(none)"
+            problems.append(
+                f"These figures are not provided and must not appear: "
+                f"{', '.join('£' + u for u in unsourced)}. "
+                f"Use only these exact figures: {allowed_str}. "
+                "Do not compute splits, totals, or projected values."
+            )
+    return problems
 
 
 def check_report(report: str, ledger: ClientLedger) -> list[str]:
@@ -50,19 +91,14 @@ def check_report(report: str, ledger: ClientLedger) -> list[str]:
     if re.search(r"<<\w+>>", report):
         problems.append("Unfilled <<placeholder>> left in the report.")
 
-    # 4. No decoy figures.
-    for fig in DECOY_FIGURES:
-        if fig in report:
-            problems.append(f"Decoy/general figure '{fig}' leaked into the report.")
-
-    # 5. Human-finalise gaps surface as flags (not hidden, not invented).
+    # 4. Human-finalise gaps surface as flags (not hidden, not invented).
     for gap in ledger.gaps:
         if gap.field not in report:
             problems.append(f"Gap '{gap.field}' is not surfaced in the report.")
     if ledger.disposal and "[FLAG:" not in report:
         problems.append("Disposal report has no flags, but CGT must be flagged.")
 
-    # 6. Holdings table is consistent with the ledger.
+    # 5. Holdings table is consistent with the ledger.
     scoped = ledger.scoped_accounts()
     for account in scoped:
         if account.account_id not in report:
@@ -72,11 +108,11 @@ def check_report(report: str, ledger: ClientLedger) -> list[str]:
         if account not in scoped and account.status == "closed" and account.account_id in report:
             problems.append(f"Closed account '{account.account_id}' should not appear.")
 
-    # 7. Every £-figure in the report traces to a ledger value (no fabricated numbers).
-    known = {str(int(a.value)) for a in ledger.accounts if a.value is not None}
-    known |= {str(int(f.amount)) for f in ledger.external_funds if f.amount is not None}
-    known |= {str(int(a)) for a in ledger.amounts}
-    for token in _money_tokens(report):
+    # 6. Every figure in the report traces to a ledger value (no fabricated numbers).
+    #    This generally subsumes decoy-leak detection: a decoy figure is not in the ledger, so it is
+    #    flagged here — without hard-coding any example's specific numbers.
+    known = allowed_figures(ledger)
+    for token in money_tokens(report):
         if token not in known:
             problems.append(f"Unsourced figure £{token} in the report (not in the ledger).")
 

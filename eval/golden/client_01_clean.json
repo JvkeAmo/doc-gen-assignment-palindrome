@@ -1,0 +1,13 @@
+{
+  "_comment": "Expected reconciled facts (ground truth for extraction+reconciliation). Stable fields only; free-text (actions/objectives/guidance wording) is not asserted.",
+  "disposal": false,
+  "charges_initial": "0%",
+  "scope": ["H-ISA-01"],
+  "accounts": {
+    "H-ISA-01": { "value": 52000, "valuation_date": "2026-04-30", "status": "open" },
+    "H-CASH-01": { "value": 25000, "valuation_date": "2026-04-30", "status": "open" }
+  },
+  "conflicts": [],
+  "external_funds": [],
+  "gaps_include": ["platform charge", "advice charge"]
+}

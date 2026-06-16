@@ -1,12 +1,12 @@
-"""Evaluation harness: check generated reports against their ledgers.
+"""Evaluation harness: two complementary checks over the generated artifacts.
 
-We are given no expected outputs, so "correct" is defined by the deterministic rules in
-``verify.check_report`` (verbatim lines present, Tax section iff disposal, no decoy or unsourced
-figures, human-finalise gaps shown as flags, holdings table consistent with the ledger).
+1. **Report rules** (`verify.check_report`) — does the final report satisfy the invariants we know
+   must hold (verbatim lines, Tax iff disposal, gaps flagged, every figure sourced, table consistent).
+2. **Golden ledgers** (`golden.compare_ledger`) — does extraction+reconciliation produce the expected
+   reconciled facts for each example (the deterministic heart). Goldens live in ``eval/golden/``.
 
-This runs those checks over the already-generated artifacts in ``outputs/`` and
-``outputs/ledgers/`` and prints a pass/fail summary. It exits non-zero if any client fails, so it
-can gate CI. Generate first with:
+Both run over the artifacts in ``outputs/`` and ``outputs/ledgers/`` and exit non-zero on any failure,
+so this can gate CI. Generate first with:
 
     python -m agent_pipeline.generate --client <name> --ledger-dir outputs/ledgers
 """
@@ -14,29 +14,47 @@ can gate CI. Generate first with:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
+from agent_pipeline.golden import compare_ledger
 from agent_pipeline.models import ClientLedger
 from agent_pipeline.verify import check_report
 
 
-def evaluate(output_dir: Path, ledger_dir: Path) -> int:
+def evaluate(output_dir: Path, ledger_dir: Path, golden_dir: Path, judge: bool = False) -> int:
     ledgers = sorted(ledger_dir.glob("*.json"))
     if not ledgers:
         print(f"No ledgers found in {ledger_dir}. Generate with --ledger-dir first.")
         return 1
 
+    judge_client = judge_model = None
+    if judge:
+        from agent_pipeline.llm import build_client, model_name  # local import: only when judging
+
+        judge_client, judge_model = build_client(), model_name()
+
     total_problems = 0
     for ledger_path in ledgers:
         name = ledger_path.stem
-        report_path = output_dir / f"{name}.md"
-        if not report_path.exists():
-            print(f"[!] {name}: report missing ({report_path})")
-            total_problems += 1
-            continue
         ledger = ClientLedger.model_validate_json(ledger_path.read_text(encoding="utf-8"))
-        problems = check_report(report_path.read_text(encoding="utf-8"), ledger)
+        report_path = output_dir / f"{name}.md"
+        report = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
+        problems: list[str] = []
+
+        # 1. report rules (hard pass/fail)
+        if report:
+            problems += [f"report: {p}" for p in check_report(report, ledger)]
+        else:
+            problems.append(f"report: missing ({report_path})")
+
+        # 2. golden ledger (hard pass/fail), if one exists for this client
+        golden_path = golden_dir / f"{name}.json"
+        if golden_path.exists():
+            golden = json.loads(golden_path.read_text(encoding="utf-8"))
+            problems += [f"ledger: {p}" for p in compare_ledger(ledger, golden)]
+
         if problems:
             print(f"[FAIL] {name}: {len(problems)} issue(s)")
             for problem in problems:
@@ -45,16 +63,27 @@ def evaluate(output_dir: Path, ledger_dir: Path) -> int:
         else:
             print(f"[PASS] {name}")
 
+        # 3. LLM-judge quality scores (soft metric, reported not gated)
+        if judge and report:
+            from agent_pipeline.judge import judge_report
+
+            scores = judge_report(judge_client, judge_model, report, ledger)
+            for dimension, result in scores.items():
+                if isinstance(result, dict):
+                    print(f"        ~ {dimension}: {result.get('score')}/5 — {result.get('reason', '')}")
+
     print(f"\n{len(ledgers)} client(s) checked, {total_problems} issue(s) total.")
     return 1 if total_problems else 0
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate generated reports against their ledgers.")
+    parser = argparse.ArgumentParser(description="Evaluate generated reports and ledgers.")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs"))
     parser.add_argument("--ledger-dir", type=Path, default=Path("outputs/ledgers"))
+    parser.add_argument("--golden-dir", type=Path, default=Path("eval/golden"))
+    parser.add_argument("--judge", action="store_true", help="also run the LLM-judge quality scores (slow)")
     args = parser.parse_args()
-    sys.exit(evaluate(args.output_dir, args.ledger_dir))
+    sys.exit(evaluate(args.output_dir, args.ledger_dir, args.golden_dir, args.judge))
 
 
 if __name__ == "__main__":

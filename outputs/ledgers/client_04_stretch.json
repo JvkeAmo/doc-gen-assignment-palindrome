@@ -135,13 +135,31 @@
   ],
   "actions": [
     {
-      "text": "use both ISA allowances for new tax year",
+      "text": "confirm Caroline's Meridian cash balance",
       "refs": [],
       "is_disposal": false,
       "amount": null
     },
     {
-      "text": "make pension contributions to both SIPPs up to appropriate levels",
+      "text": "confirm timing of bridging-loan repayment",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "disinvest portion of Holloway joint GIA and rebalance",
+      "refs": [],
+      "is_disposal": true,
+      "amount": null
+    },
+    {
+      "text": "use ISA allowances for new tax year",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "make pension contributions to both SIPPs",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -157,44 +175,26 @@
       "refs": [],
       "is_disposal": false,
       "amount": null
-    },
-    {
-      "text": "disinvest portion of Holloway joint GIA and rebalance",
-      "refs": [],
-      "is_disposal": true,
-      "amount": null
-    },
-    {
-      "text": "confirm Caroline's Meridian cash balance",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
-    },
-    {
-      "text": "confirm timing of bridging-loan repayment",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
     }
   ],
   "external_funds": [
     {
-      "label": "Completion payment solicitor's account",
+      "label": "Completion payment",
       "amount": 850000.0,
-      "available": true,
-      "note": "Received in April 2026, pending transfer"
+      "kind": "available",
+      "note": "Received in solicitor's client account"
     },
     {
       "label": "Deferred earnout",
       "amount": 400000.0,
-      "available": false,
-      "note": "Contingent on business performance over two years"
+      "kind": "contingent",
+      "note": "Payable over two years if revenue targets met"
     },
     {
       "label": "Bridging loan repayment",
       "amount": 200000.0,
-      "available": false,
-      "note": "Committed and due shortly"
+      "kind": "committed",
+      "note": "Due shortly from completion proceeds"
     }
   ],
   "disposal": true,
@@ -226,12 +226,13 @@
     }
   ],
   "objectives": [
-    "long-term growth with balanced-to-moderate risk appetite",
-    "build tax-efficient base to replace James's income in three years"
+    "long-term growth with balanced-to-moderate risk appetite; no current income required; build tax-efficient base for future income replacement"
   ],
-  "amounts": [],
+  "amounts": [
+    650000.0
+  ],
   "guidance": [
-    "Meeting note contains details on business-sale proceeds arriving in multiple forms and dates; investment plan must align with three-year income replacement goal."
+    "Pension contributions will be sized appropriately without breaching limits. Disregard closed Meridian account with zero balance. Monitor bridging loan repayment timing and Caroline's Meridian cash balance."
   ],
   "conflicts": [
     {

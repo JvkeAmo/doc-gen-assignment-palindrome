@@ -1,0 +1,14 @@
+{
+  "_comment": "GIA value must be the fresher meeting figure (45000 @ 2026-05-14), not the stale db 40000.",
+  "disposal": true,
+  "charges_initial": "0%",
+  "scope": ["H-ISA-D", "H-ISA-S", "H-GIA-J"],
+  "accounts": {
+    "H-ISA-D": { "value": 61000, "valuation_date": "2026-04-30", "status": "open" },
+    "H-ISA-S": { "value": 58500, "valuation_date": "2026-04-30", "status": "open" },
+    "H-GIA-J": { "value": 45000, "valuation_date": "2026-05-14", "status": "open" }
+  },
+  "conflicts": ["H-GIA-J"],
+  "external_funds": [],
+  "gaps_include": ["capital gains tax", "platform charge", "advice charge"]
+}

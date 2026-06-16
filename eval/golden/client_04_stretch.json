@@ -1,0 +1,20 @@
+{
+  "_comment": "GIA fresher (255000 @ 2026-05-20) over db/image stale 240000; closed M4-OLD-C excluded from scope; null cash flagged; earnout not available. Only critical accounts asserted; scope asserts the full open set.",
+  "disposal": true,
+  "charges_initial": "0.5%",
+  "scope": ["H4-ISA-J", "H4-GIA-HJ", "B4-SIPP-J", "B4-GIA-J", "M4-BOND-J", "M4-CASH-J", "H4-ISA-C", "B4-SIPP-C", "M4-CASH-C"],
+  "accounts": {
+    "H4-GIA-HJ": { "value": 255000, "valuation_date": "2026-05-20", "status": "open" },
+    "B4-SIPP-J": { "value": 610000, "valuation_date": "2026-04-30", "status": "open" },
+    "M4-CASH-C": { "value": null, "valuation_date": null, "status": "open" },
+    "M4-OLD-C": { "value": 0, "valuation_date": "2025-11-30", "status": "closed" }
+  },
+  "conflicts": ["H4-GIA-HJ"],
+  "external_funds": [
+    { "amount": 850000, "kind": "available" },
+    { "amount": 400000, "kind": "contingent" },
+    { "amount": 200000, "kind": "committed" }
+  ],
+  "available_to_invest": 650000,
+  "gaps_include": ["M4-CASH-C", "capital gains tax", "platform charge", "advice charge"]
+}

@@ -97,7 +97,52 @@ Every run writes `outputs/runs/<client>_<ts>.json` (per-stage timings, every pro
 latency, the ledger, the report) and appends to `outputs/runs/index.md`, for inspecting prompts,
 outputs and latency. Gitignored (local dev telemetry, not part of the deliverable).
 
+## Reflection loop (generate → critique → revise)
+
+LLM prose slots are now generated through a bounded critique→revise loop: generate, run a
+slot-scoped critic (`verify.critique_slot` — summary must carry no monetary figures; recommendation
+may only state ledger-sourced figures, no computed splits), and on failure re-prompt with the
+specific problems (max 2 retries; at temperature 0 the prompt must change each time, which the
+feedback does). If still failing, the section ships with a visible `[FLAG: needs review]` rather than
+hiding the issue. The critic and the final verifier share `money_tokens`/`allowed_figures`, so they
+agree on what counts as a figure — including £/$/€ and bare comma-grouped numbers (a real hole: the
+model sometimes writes `$22,500`, which a £-only check missed). The critic guarantees figures are
+*sourced*, not *semantically apt* — judging aptness/tone is left to a future LLM-judge.
+
+## Evaluation: two layers, plus a removed overfit
+
+"Correct" is defined two ways, both in the eval harness (`evaluate.py`):
+- **Report rules** (`verify.check_report`) — invariants on the final report (verbatim lines, Tax iff
+  disposal, gaps flagged, every figure sourced, table consistent).
+- **Golden ledgers** (`eval/golden/*.json`, `golden.compare_ledger`) — hand-authored expected
+  reconciled facts for each example (values, dates, scope, disposal, conflicts, funds, gaps),
+  evaluating extraction+reconciliation directly. Stable fields only; free-text is not asserted. These
+  are test fixtures, not production logic — not the overfitting the brief warns against.
+
+Removed `DECOY_FIGURES`: it hard-coded the four examples' specific decoy numbers (overfit — the
+held-out set differs) and was redundant with the general "every figure must trace to the ledger"
+check. Also made figure detection currency-agnostic (£/$/€) and catch bare comma-grouped numbers.
+
+## LLM-judge — eval only, not inference
+
+`judge.py` scores prose quality (faithfulness, background altitude, sensitivity, clarity) against the
+ledger — the dimensions deterministic checks can't measure (e.g. whether the inheritance was handled
+tactfully). Run via `evaluate --judge`. It is deliberately **not** used at inference: the runtime
+guard is the fast, deterministic `critique_slot`; the judge is slower/flakier and belongs where a
+human reads the scores and noise averages out. The two are complementary (compliance vs quality), not
+redundant.
+
+## Funds calculator: LLM classifies, code computes
+
+`funds.py` computes `available_to_invest = sum(available inflows) − sum(committed outflows)`, with
+contingent money (an unreceived earnout) excluded. The LLM does the fuzzy part — classifying each
+external fund as `available` / `contingent` / `committed` during extraction; the deterministic tool
+does the arithmetic the model can't be trusted with. The result is written into the ledger as a
+sourced figure, so the recommendation can state it and verification accepts it (an LLM-computed number
+would be unsourced and often wrong). client_04: completion £850k − bridging £200k = £650k investable,
+earnout £400k excluded. Asserted by the golden ledgers.
+
 ## To take further (noted, not yet done)
-- A reflection (critic→revise) loop wiring the verifier as critic, and prompt auto-tuning against the eval.
-- A deterministic funds-calculator tool (net client_04's £200k bridging; available-to-invest).
+- Use judge scores to drive prompt tuning (the "prompts as code" loop).
 - An exploratory pass for unrecognised documents (discovery + review flags).
+- Multiple document types reusing the ledger (config-only).

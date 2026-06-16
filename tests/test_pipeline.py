@@ -7,7 +7,24 @@ reconciliation, and the verification checks. Run with ``uv run pytest``.
 from agent_pipeline.extract import ExtractedFacts, LiveValue, merge_facts, parse_db
 from agent_pipeline.models import Account, ClientLedger, Gap
 from agent_pipeline.reconcile import reconcile
-from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report
+from agent_pipeline.render import generate_with_reflection
+from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report, critique_slot
+
+
+class _StubClient:
+    """Minimal stand-in for the OpenAI client: returns queued responses in order."""
+
+    def __init__(self, responses):
+        outs = list(responses)
+
+        class _Completions:
+            def create(self, **_kwargs):
+                content = outs.pop(0)
+                message = type("M", (), {"content": content})
+                choice = type("C", (), {"message": message})
+                return type("R", (), {"choices": [choice]})
+
+        self.chat = type("Chat", (), {"completions": _Completions()})()
 
 DB_JSON = """
 {
@@ -79,6 +96,54 @@ def test_merge_facts_unions_lists_and_keeps_first_scalar():
     assert merged.risk_profile == "4"
     assert merged.scope_account_ids == ["A", "B"]  # union, de-duped
     assert merged.actions == ["x", "y"]
+
+
+def test_critique_slot_flags_summary_figures_and_unsourced_recommendation():
+    ledger = ClientLedger(
+        client="A",
+        accounts=[Account(account_id="GIA-J", owner="Joint", type="GIA", value=45000.0)],
+    )
+    # summary must carry no figures at all
+    assert critique_slot("summary", "Retired clients seeking growth.", ledger) == []
+    assert critique_slot("summary", "They hold about £45,000.", ledger)
+    # recommendation may cite a sourced value, but not a computed split
+    assert critique_slot("recommendation", "Disinvest the GIA (£45,000).", ledger) == []
+    assert critique_slot("recommendation", "Each ISA receives £22,500.", ledger)
+
+
+def test_reflection_retries_until_clean():
+    ledger = ClientLedger(
+        client="A",
+        accounts=[Account(account_id="GIA-J", owner="Joint", type="GIA", value=45000.0)],
+    )
+    client = _StubClient(["Each ISA receives £22,500.", "Disinvest the GIA (£45,000)."])
+    out = generate_with_reflection("recommendation", "BASE", ledger, client, "m", None, max_retries=2)
+    assert "£22,500" not in out  # the bad first attempt was rejected
+    assert "£45,000" in out  # the clean revision was accepted
+    assert "[FLAG" not in out
+
+
+def test_reflection_flags_when_unresolved():
+    ledger = ClientLedger(
+        client="A",
+        accounts=[Account(account_id="GIA-J", owner="Joint", type="GIA", value=45000.0)],
+    )
+    client = _StubClient(["£99,999 each", "£99,999 each", "£99,999 each"])
+    out = generate_with_reflection("recommendation", "BASE", ledger, client, "m", None, max_retries=2)
+    assert "[FLAG: section needs review" in out  # shipped with a visible flag, not hidden
+
+
+def test_funds_calculator_nets_committed_and_excludes_contingent():
+    from agent_pipeline.funds import available_to_invest
+    from agent_pipeline.models import ExternalFund
+
+    funds = [
+        ExternalFund(label="completion", amount=850000, kind="available"),
+        ExternalFund(label="earnout", amount=400000, kind="contingent"),
+        ExternalFund(label="bridging", amount=200000, kind="committed"),
+    ]
+    assert available_to_invest(funds) == 650000  # 850k available - 200k committed; earnout excluded
+    assert available_to_invest([]) is None
 
 
 def test_verify_passes_a_clean_report():

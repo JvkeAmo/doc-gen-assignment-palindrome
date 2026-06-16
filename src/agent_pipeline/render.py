@@ -13,8 +13,10 @@ from __future__ import annotations
 
 from openai import OpenAI
 
+from agent_pipeline.funds import funds_breakdown
 from agent_pipeline.models import Account, ClientLedger
 from agent_pipeline.runlog import RunRecorder, timed_complete
+from agent_pipeline.verify import critique_slot
 
 
 # --- helpers ---------------------------------------------------------------------------------
@@ -124,11 +126,9 @@ def _recommendation_context(ledger: ClientLedger) -> str:
     if ledger.amounts:
         lines.append("Amounts involved: " + ", ".join(f"£{a:,.0f}" for a in ledger.amounts))
     if ledger.external_funds:
-        lines.append("Other funds:")
-        for f in ledger.external_funds:
-            amt = f"£{f.amount:,.0f}" if f.amount is not None else "amount to confirm"
-            avail = "available now" if f.available else "not yet available / committed"
-            lines.append(f"- {f.label}: {amt} ({avail}){' — ' + f.note if f.note else ''}")
+        lines.append("Other funds (use 'available to invest now' as the investable total):")
+        for line in funds_breakdown(ledger.external_funds):
+            lines.append(f"- {line}")
     return "\n".join(lines)
 
 
@@ -136,6 +136,39 @@ _LLM_CONTEXT = {
     "summary": _summary_context,
     "recommendation": _recommendation_context,
 }
+
+
+def generate_with_reflection(
+    name: str,
+    base_prompt: str,
+    ledger: ClientLedger,
+    client: OpenAI,
+    model: str,
+    recorder: RunRecorder | None,
+    max_retries: int = 2,
+) -> str:
+    """Generate a prose slot, critique it against the ledger, and revise on failure.
+
+    Bounded retries; each retry augments the prompt with the specific problems (necessary because at
+    temperature 0 an unchanged prompt would just repeat the same output). If it still fails after the
+    retries, the section is shipped with a visible review flag rather than looping or hiding the issue.
+    """
+    prompt = base_prompt
+    output = ""
+    problems: list[str] = []
+    for attempt in range(max_retries + 1):
+        label = f"generate:{name}" if attempt == 0 else f"generate:{name}:retry{attempt}"
+        output = timed_complete(recorder, label, client, model, prompt)
+        problems = critique_slot(name, output, ledger)
+        if not problems:
+            return output
+        prompt = (
+            base_prompt
+            + "\n\nYour previous attempt had these problems:\n"
+            + "\n".join(f"- {p}" for p in problems)
+            + "\nRewrite the section, fixing them. Use only the figures provided; invent nothing."
+        )
+    return output + f"\n\n[FLAG: section needs review — {len(problems)} unresolved issue(s)]"
 
 
 def fill_placeholder(
@@ -151,8 +184,8 @@ def fill_placeholder(
     source = spec.get("source", "llm")
     if source.startswith("render:"):
         return RENDERERS[source.split(":", 1)[1]](ledger)
-    # llm prose
+    # llm prose, with a critique → revise loop
     context_fn = _LLM_CONTEXT.get(name)
     context = context_fn(ledger) if context_fn else ""
-    prompt = f"{global_instructions}\n\n{spec.get('prompt', '')}\n\nFacts:\n{context}"
-    return timed_complete(recorder, f"generate:{name}", client, model, prompt)
+    base_prompt = f"{global_instructions}\n\n{spec.get('prompt', '')}\n\nFacts:\n{context}"
+    return generate_with_reflection(name, base_prompt, ledger, client, model, recorder)

@@ -79,8 +79,8 @@
     {
       "label": "inheritance from Jean's mother's estate",
       "amount": 120000.0,
-      "available": true,
-      "note": "Received and cleared; reference origin with sensitivity"
+      "kind": "available",
+      "note": "Received and cleared, to be invested alongside existing portfolio"
     }
   ],
   "disposal": true,
@@ -107,13 +107,14 @@
     }
   ],
   "objectives": [
-    "long-term growth with no income required"
+    "long-term growth",
+    "no income required"
   ],
   "amounts": [
     120000.0
   ],
   "guidance": [
-    "Handle the inheritance sensitively following the recent death of Jean's mother"
+    "Handle inheritance sensitively following the recent death of Jean's mother"
   ],
   "conflicts": [
     {

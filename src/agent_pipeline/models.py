@@ -52,12 +52,15 @@ class Action(BaseModel):
 class ExternalFund(BaseModel):
     """Money that is not (yet) an account: an inheritance, business-sale proceeds, etc.
 
-    ``available`` is False for things like a contingent earnout that has not been received.
+    ``kind`` is how the funds calculator treats it:
+      * "available"  — an inflow that can be invested now (inheritance, completion payment received);
+      * "contingent" — a future/uncertain inflow not yet received (an earnout) — excluded from totals;
+      * "committed"  — an amount already earmarked for an outflow (a loan repayment) — subtracted.
     """
 
     label: str
     amount: float | None = None
-    available: bool = True
+    kind: str = "available"
     note: str | None = None
 
 

@@ -41,7 +41,7 @@ class LiveValue(BaseModel):
 class ExternalFundLite(BaseModel):
     label: str
     amount: float | None = None
-    available: bool = True
+    kind: str = "available"  # "available" | "contingent" | "committed"
     note: str | None = None
 
 
@@ -172,9 +172,11 @@ def _meeting_prompt(accounts: list[Account], meeting: str, guidance: str) -> str
         '  "live_values": list of {account_id, description, value, as_of, note} for any account '
         "value observed live in the meeting that may differ from the db. Use the meeting date as "
         "as_of. Only when a number is actually given;\n"
-        '  "external_funds": list of {label, amount, available, note} for money not yet an account '
-        "(inheritance, business-sale proceeds). available=false if not yet received or already "
-        "committed elsewhere;\n"
+        '  "external_funds": list of {label, amount, kind, note} for money not yet an account '
+        "(inheritance, business-sale proceeds). kind is one of: \"available\" (an inflow investable "
+        'now, e.g. an inheritance or a completion payment received); "contingent" (a future/uncertain '
+        'inflow not yet received, e.g. an earnout); "committed" (an amount already earmarked to be '
+        'paid out, e.g. a loan repayment);\n'
         '  "guidance": short notes from the internal "## This client" section, or anything to handle '
         "sensitively (e.g. an inheritance following a death)."
     )

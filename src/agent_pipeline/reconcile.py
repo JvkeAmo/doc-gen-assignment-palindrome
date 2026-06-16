@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import date
 
 from agent_pipeline.extract import ExtractedFacts
+from agent_pipeline.funds import available_to_invest
 from agent_pipeline.models import (
     Account,
     Action,
@@ -103,9 +104,16 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
 
     actions = [Action(text=t, is_disposal=_is_disposal(t)) for t in facts.actions]
     external = [
-        ExternalFund(label=f.label, amount=f.amount, available=f.available, note=f.note)
+        ExternalFund(label=f.label, amount=f.amount, kind=f.kind, note=f.note)
         for f in facts.external_funds
     ]
+
+    # Funds calculator (deterministic): make the available-to-invest total a sourced figure so the
+    # recommendation can state it and verification accepts it.
+    amounts = list(facts.investment_amounts)
+    investable = available_to_invest(external)
+    if investable is not None and investable not in amounts:
+        amounts.append(investable)
 
     return ClientLedger(
         client=facts.client_label or "the client",
@@ -117,7 +125,7 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
         charges=Charges(initial=facts.initial_charge),
         gaps=gaps,
         objectives=facts.objectives,
-        amounts=facts.investment_amounts,
+        amounts=amounts,
         guidance=facts.guidance,
         conflicts=conflicts,
     )
