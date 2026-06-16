@@ -1,0 +1,20 @@
+{
+  "snapshot_date": "2026-04-30",
+  "holders": {
+    "primary": {
+      "name": "Alex Demo",
+      "accounts": [
+        {
+          "account_id": "DEMO-ISA-1",
+          "type": "Stocks & Shares ISA",
+          "owner": "Alex Demo",
+          "platform": "Holloway",
+          "value": 50000,
+          "currency": "GBP",
+          "valuation_date": "2026-04-30",
+          "status": "open"
+        }
+      ]
+    }
+  }
+}

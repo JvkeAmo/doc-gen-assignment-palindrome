@@ -2,6 +2,39 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Generate: advice report (pick a client)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.generate",
+      "args": ["--client", "${input:client}", "--ledger-dir", "outputs/ledgers"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Generate: portfolio review (2nd doc type, same ledger)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.generate",
+      "args": ["--client", "${input:client}", "--config", "config/portfolio_review_config.json"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Generate: unknown-doc demo (discovery + review flags)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.generate",
+      "args": ["--client", "demo_unknown"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
       "name": "Generate: client_01_clean",
       "type": "debugpy",
       "request": "launch",
@@ -13,18 +46,7 @@
       "justMyCode": true
     },
     {
-      "name": "Generate: pick a client",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "agent_pipeline.generate",
-      "args": ["--client", "${input:client}", "--ledger-dir", "outputs/ledgers"],
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}",
-      "python": "${workspaceFolder}/.venv/bin/python",
-      "justMyCode": true
-    },
-    {
-      "name": "Evaluate (check outputs)",
+      "name": "Evaluate (report rules + golden ledgers)",
       "type": "debugpy",
       "request": "launch",
       "module": "agent_pipeline.evaluate",
@@ -32,6 +54,28 @@
       "cwd": "${workspaceFolder}",
       "python": "${workspaceFolder}/.venv/bin/python",
       "justMyCode": true
+    },
+    {
+      "name": "Evaluate --judge (LLM quality scores, slow)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "agent_pipeline.evaluate",
+      "args": ["--judge"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": true
+    },
+    {
+      "name": "Pytest (deterministic unit tests, no LLM)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-v"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "justMyCode": false
     }
   ],
   "inputs": [
