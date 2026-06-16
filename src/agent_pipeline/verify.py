@@ -71,7 +71,13 @@ def critique_slot(name: str, text: str, ledger: ClientLedger) -> list[str]:
     return problems
 
 
-def check_report(report: str, ledger: ClientLedger) -> list[str]:
+def check_report(report: str, ledger: ClientLedger, *, check_tax: bool = True) -> list[str]:
+    """Verify a report against its ledger.
+
+    ``check_tax`` gates the advice-report-specific Tax rules (Tax section iff a disposal; a disposal
+    must carry a flag). A different document type that has no Tax section sets it False. All other
+    checks are document-type agnostic.
+    """
     problems: list[str] = []
 
     # 1. Verbatim lines present, exactly.
@@ -80,22 +86,25 @@ def check_report(report: str, ledger: ClientLedger) -> list[str]:
     if RISK_WARNING not in report:
         problems.append("Risk warning missing or altered.")
 
-    # 2. Tax section appears iff there is a disposal.
-    has_tax = "## Tax Implications" in report
-    if has_tax != ledger.disposal:
-        problems.append(
-            f"Tax section presence ({has_tax}) does not match disposal flag ({ledger.disposal})."
-        )
+    # 2. Tax section appears iff there is a disposal (advice report only).
+    if check_tax:
+        has_tax = "## Tax Implications" in report
+        if has_tax != ledger.disposal:
+            problems.append(
+                f"Tax section presence ({has_tax}) does not match disposal flag ({ledger.disposal})."
+            )
 
     # 3. No leftover placeholders.
     if re.search(r"<<\w+>>", report):
         problems.append("Unfilled <<placeholder>> left in the report.")
 
-    # 4. Human-finalise gaps surface as flags (not hidden, not invented).
+    # 4. Human-finalise gaps surface as flags (not hidden, not invented) — but only require a gap's
+    #    flag when the section it belongs to is actually present in this document.
     for gap in ledger.gaps:
-        if gap.field not in report:
+        section_present = gap.section is None or f"## {gap.section}" in report
+        if section_present and gap.field not in report:
             problems.append(f"Gap '{gap.field}' is not surfaced in the report.")
-    if ledger.disposal and "[FLAG:" not in report:
+    if check_tax and ledger.disposal and "[FLAG:" not in report:
         problems.append("Disposal report has no flags, but CGT must be flagged.")
 
     # 5. Holdings table is consistent with the ledger.

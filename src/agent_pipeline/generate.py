@@ -108,10 +108,16 @@ def main() -> None:
     with recorder.stage("generate"):
         report = generate_report(config, ledger, client, model, recorder)
     with recorder.stage("verify"):
-        problems = check_report(report, ledger)
+        # A config can declare which checks apply (e.g. a non-advice doc has no Tax section).
+        check_tax = bool(config.get("verification", {}).get("tax_section", True))
+        problems = check_report(report, ledger, check_tax=check_tax)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    out_path = args.output_dir / f"{args.client}.md"
+    # A second document type generated from the same client gets a doc_id suffix so it doesn't
+    # overwrite the advice report (e.g. client_02_medium__portfolio_review.md).
+    doc_id = config.get("doc_id")
+    out_name = f"{args.client}__{doc_id}" if doc_id else args.client
+    out_path = args.output_dir / f"{out_name}.md"
     out_path.write_text(report, encoding="utf-8")
     print(f"Wrote {out_path}")
 

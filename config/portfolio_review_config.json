@@ -1,0 +1,38 @@
+{
+  "document_title": "Portfolio Review Summary",
+  "doc_id": "portfolio_review",
+  "global_instructions": "You are writing one section of a portfolio review summary addressed to the client. Write in clear British English, first person plural ('we'). Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.",
+  "verification": { "tax_section": false },
+  "_comment": "A second document type that reuses the SAME reconciled ClientLedger and the SAME renderers/prose slots as the advice report, with no new src/ code. It is a high-level review (no recommendation/tax/fees), so verification.tax_section is false. Run: generate --client <name> --config config/portfolio_review_config.json -> outputs/<name>__portfolio_review.md",
+  "sections": [
+    {
+      "id": "introduction",
+      "title": "Introduction",
+      "use_if": "always",
+      "template": "This is a summary review of <<scope>>, prepared from the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.",
+      "placeholders": {
+        "scope": { "source": "render:scope", "template": "{phrase}" }
+      }
+    },
+    {
+      "id": "background_objectives",
+      "title": "Background & Objectives",
+      "use_if": "always",
+      "template": "<<summary>>\n\nThe accounts covered by this review are as follows:\n\n<<holdings_table>>",
+      "placeholders": {
+        "summary": {
+          "source": "llm",
+          "prompt": "In two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully."
+        },
+        "holdings_table": { "source": "render:holdings_table", "template": "{table}" }
+      }
+    },
+    {
+      "id": "conclusion",
+      "title": "Conclusion",
+      "use_if": "always",
+      "template": "The value of investments can fall as well as rise and you may get back less than you invest. Past performance is not a guide to future returns.\n\nPlease contact us if anything in this summary needs updating.",
+      "placeholders": {}
+    }
+  ]
+}

@@ -36,6 +36,20 @@ uv run python -m agent_pipeline.generate --client client_01_clean --ledger-dir o
 Clients live under `data/`: `client_01_clean`, `client_02_medium`, `client_03_hard`,
 `client_04_stretch` (large and messy on purpose).
 
+### Multiple document types
+
+Because every section is generated from the reconciled `ClientLedger` and all wording lives in the
+config, a second document type is just a second config that reuses the same ledger and renderers — no
+new `src/` code. For example, a shorter portfolio review:
+
+```bash
+uv run python -m agent_pipeline.generate --client client_02_medium --config config/portfolio_review_config.json
+# report -> outputs/client_02_medium__portfolio_review.md
+```
+
+A config can declare a `doc_id` (output suffix) and which checks apply (e.g. a doc with no Tax
+section sets `"verification": { "tax_section": false }`).
+
 ## Evaluate
 
 We are given no expected outputs, so "correct" is defined by deterministic checks (verbatim lines

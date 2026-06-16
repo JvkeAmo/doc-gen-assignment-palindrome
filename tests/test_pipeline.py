@@ -196,6 +196,41 @@ def test_render_cgt_fills_config_template():
     )
 
 
+def _portfolio_style_report():
+    # A non-advice doc: verbatim lines + holdings table, but no Tax/Fees sections.
+    return (
+        "# Portfolio Review Summary\n\n## Introduction\n\n"
+        f"{FCA_LINE}\n\n## Background & Objectives\n\n"
+        "| Account | Owner | Type | Value |\n|---|---|---|---|\n"
+        "| ISA-A | A | ISA | £61,000 |\n\n## Conclusion\n\n"
+        f"{RISK_WARNING}\n"
+    )
+
+
+def test_check_report_tax_rules_can_be_disabled_for_other_doc_types():
+    ledger = ClientLedger(
+        client="A",
+        disposal=True,
+        accounts=[Account(account_id="ISA-A", owner="A", type="ISA", value=61000.0)],
+    )
+    report = _portfolio_style_report()
+    # The advice-report default flags a disposal with no Tax section...
+    assert any("Tax section" in p for p in check_report(report, ledger))
+    # ...but a doc type that declares no Tax section passes.
+    assert check_report(report, ledger, check_tax=False) == []
+
+
+def test_check_report_only_requires_gaps_for_present_sections():
+    ledger = ClientLedger(
+        client="A",
+        disposal=False,
+        accounts=[Account(account_id="ISA-A", owner="A", type="ISA", value=61000.0)],
+        gaps=[Gap(field="platform charge", reason="to confirm", section="Fees & Charges")],
+    )
+    # The doc has no "## Fees & Charges" section, so the fee gap must not be required here.
+    assert check_report(_portfolio_style_report(), ledger, check_tax=False) == []
+
+
 def test_verify_passes_a_clean_report():
     ledger = ClientLedger(
         client="A",
