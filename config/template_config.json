@@ -8,7 +8,7 @@
       "use_if": "always",
       "template": "Further to our recent discussions, we are writing to set out our advice in relation to <<scope>>. This advice is based on the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.",
       "placeholders": {
-        "scope": { "source": "render:scope" }
+        "scope": { "source": "render:scope", "template": "{phrase}" }
       }
     },
     {
@@ -21,7 +21,7 @@
           "source": "llm",
           "prompt": "In two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully."
         },
-        "holdings_table": { "source": "render:holdings_table" }
+        "holdings_table": { "source": "render:holdings_table", "template": "{table}" }
       }
     },
     {
@@ -42,7 +42,10 @@
       "use_if": "disposal",
       "template": "<<cgt_statement>>",
       "placeholders": {
-        "cgt_statement": { "source": "render:cgt_statement" }
+        "cgt_statement": {
+          "source": "render:cgt_statement",
+          "template": "The recommended disposal may give rise to a capital gains tax liability, which would be assessed against your annual exempt amount.{cgt_flag}"
+        }
       }
     },
     {
@@ -51,7 +54,10 @@
       "use_if": "always",
       "template": "<<fees>>",
       "placeholders": {
-        "fees": { "source": "render:fees" }
+        "fees": {
+          "source": "render:fees",
+          "template": "The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge.{initial_charge}{fee_flags}"
+        }
       }
     },
     {

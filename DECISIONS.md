@@ -91,6 +91,26 @@ should be enforced by code, not left to a prompt's goodwill. The config still ow
 definition (sections, inclusion rules, the LLM prompts, verbatim text); the few prompts that remain are
 the ones that genuinely need a model, which is what makes iterating/tuning them tractable.
 
+## Config owns wording, Python owns logic
+
+Following on from the above: the deterministic sections (fees, the CGT statement, scope) used to
+hard-code their *sentences* in `render.py`, which made the client-facing wording less editable than a
+prompt — cutting against "most of your work goes in the config". The wording now lives in each
+`render:` placeholder's `template` in `config/template_config.json`; the renderer only supplies the
+values and flags the template slots them into:
+
+```jsonc
+"fees": {
+  "source": "render:fees",
+  "template": "The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge.{initial_charge}{fee_flags}"
+}
+```
+
+So every word the client reads is config-driven and tweakable, while determinism and compliance stay
+in code (recency-wins, dedupe, "never invent a CGT figure", the to-confirm flags). The holdings table
+stays code-built — it is structural, not prose. This split is also what makes a second document type
+cheap: a new config reuses the same ledger and renderers without touching `src/`.
+
 ## Run telemetry
 
 Every run writes `outputs/runs/<client>_<ts>.json` (per-stage timings, every prompt + response +

@@ -5,9 +5,9 @@ reconciliation, and the verification checks. Run with ``uv run pytest``.
 """
 
 from agent_pipeline.extract import ExtractedFacts, LiveValue, merge_facts, parse_db
-from agent_pipeline.models import Account, ClientLedger, Gap
+from agent_pipeline.models import Account, Charges, ClientLedger, Gap
 from agent_pipeline.reconcile import reconcile
-from agent_pipeline.render import generate_with_reflection
+from agent_pipeline.render import fill_placeholder, generate_with_reflection
 from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report, critique_slot
 
 
@@ -144,6 +144,56 @@ def test_funds_calculator_nets_committed_and_excludes_contingent():
     ]
     assert available_to_invest(funds) == 650000  # 850k available - 200k committed; earnout excluded
     assert available_to_invest([]) is None
+
+
+def test_render_fees_fills_config_template():
+    # The fees wording now lives in the config template; the renderer only supplies the
+    # conditional clauses. The assembled result must match the previous code-built string exactly.
+    ledger = ClientLedger(
+        client="A",
+        charges=Charges(initial="0%"),
+        gaps=[
+            Gap(field="platform charge", reason="ongoing platform charge to confirm", section="Fees & Charges"),
+            Gap(field="advice charge", reason="ongoing advice charge to confirm", section="Fees & Charges"),
+        ],
+    )
+    spec = {
+        "source": "render:fees",
+        "template": "The ongoing charges that apply are the platform charge levied by the platform "
+        "and our ongoing advice charge.{initial_charge}{fee_flags}",
+    }
+    out = fill_placeholder("fees", spec, ledger, None, "m", "")
+    assert out == (
+        "The ongoing charges that apply are the platform charge levied by the platform and our "
+        "ongoing advice charge. The initial charge on this recommendation is 0%. "
+        "[FLAG: platform charge — ongoing platform charge to confirm] "
+        "[FLAG: advice charge — ongoing advice charge to confirm]"
+    )
+
+
+def test_render_cgt_fills_config_template():
+    ledger = ClientLedger(
+        client="A",
+        disposal=True,
+        gaps=[
+            Gap(
+                field="capital gains tax",
+                reason="liability on the disposal to be confirmed by adviser",
+                section="Tax Implications",
+            )
+        ],
+    )
+    spec = {
+        "source": "render:cgt_statement",
+        "template": "The recommended disposal may give rise to a capital gains tax liability, which "
+        "would be assessed against your annual exempt amount.{cgt_flag}",
+    }
+    out = fill_placeholder("cgt_statement", spec, ledger, None, "m", "")
+    assert out == (
+        "The recommended disposal may give rise to a capital gains tax liability, which would be "
+        "assessed against your annual exempt amount.\n\n"
+        "[FLAG: capital gains tax — liability on the disposal to be confirmed by adviser]"
+    )
 
 
 def test_verify_passes_a_clean_report():

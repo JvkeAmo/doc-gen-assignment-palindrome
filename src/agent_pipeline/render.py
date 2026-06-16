@@ -47,9 +47,13 @@ def _natural_join(items: list[str]) -> str:
 
 
 # --- deterministic renderers -----------------------------------------------------------------
+#
+# Each renderer returns a dict of named fields. The *wording* of the section lives in the config
+# placeholder's "template" (config owns wording); the renderer only supplies values and flags the
+# template slots into (Python owns logic). See [[Config Strategy]].
 
-def render_scope(ledger: ClientLedger) -> str:
-    """A natural phrase naming the account types the report covers."""
+def render_scope(ledger: ClientLedger) -> dict:
+    """Field {phrase}: a natural phrase naming the account types the report covers."""
     seen: list[str] = []
     for a in ledger.scoped_accounts():
         label = a.type
@@ -57,37 +61,31 @@ def render_scope(ledger: ClientLedger) -> str:
             label = f"jointly-held {a.type}"
         if label not in seen:
             seen.append(label)
-    phrase = _natural_join([f"your {s}" for s in seen])
-    return phrase or "your accounts"
+    phrase = _natural_join([f"your {s}" for s in seen]) or "your accounts"
+    return {"phrase": phrase}
 
 
-def render_holdings_table(ledger: ClientLedger) -> str:
+def render_holdings_table(ledger: ClientLedger) -> dict:
+    """Field {table}: the holdings table (structural, so it stays code-built)."""
     rows = ["| Account | Owner | Type | Value |", "|---|---|---|---|"]
     for a in ledger.scoped_accounts():
         rows.append(f"| {a.account_id} | {a.owner} | {a.type} | {_money(a, ledger)} |")
-    return "\n".join(rows)
+    return {"table": "\n".join(rows)}
 
 
-def render_cgt_statement(ledger: ClientLedger) -> str:
-    base = (
-        "The recommended disposal may give rise to a capital gains tax liability, which would be "
-        "assessed against your annual exempt amount."
-    )
+def render_cgt_statement(ledger: ClientLedger) -> dict:
+    """Field {cgt_flag}: the human-finalise CGT flag(s), or empty when there are none."""
     markers = _gap_markers(ledger, "Tax Implications")
-    return base + ("\n\n" + " ".join(markers) if markers else "")
+    return {"cgt_flag": ("\n\n" + " ".join(markers)) if markers else ""}
 
 
-def render_fees(ledger: ClientLedger) -> str:
-    parts = [
-        "The ongoing charges that apply are the platform charge levied by the platform and our "
-        "ongoing advice charge."
-    ]
-    if ledger.charges.initial:
-        parts.append(f"The initial charge on this recommendation is {ledger.charges.initial}.")
+def render_fees(ledger: ClientLedger) -> dict:
+    """Fields {initial_charge} (its sentence, when known) and {fee_flags} (the to-confirm flags)."""
+    initial = ledger.charges.initial
+    initial_charge = f" The initial charge on this recommendation is {initial}." if initial else ""
     markers = _gap_markers(ledger, "Fees & Charges")
-    if markers:
-        parts.append(" ".join(markers))
-    return " ".join(parts)
+    fee_flags = (" " + " ".join(markers)) if markers else ""
+    return {"initial_charge": initial_charge, "fee_flags": fee_flags}
 
 
 RENDERERS = {
@@ -183,7 +181,11 @@ def fill_placeholder(
     """Resolve one placeholder from its config spec."""
     source = spec.get("source", "llm")
     if source.startswith("render:"):
-        return RENDERERS[source.split(":", 1)[1]](ledger)
+        # Deterministic slot: the renderer supplies named fields, the config "template" owns the
+        # wording they slot into (e.g. "...advice charge.{initial_charge}{fee_flags}").
+        fields = RENDERERS[source.split(":", 1)[1]](ledger)
+        template = spec.get("template", "{value}")
+        return template.format(**fields)
     # llm prose, with a critique → revise loop
     context_fn = _LLM_CONTEXT.get(name)
     context = context_fn(ledger) if context_fn else ""
