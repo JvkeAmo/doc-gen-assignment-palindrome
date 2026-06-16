@@ -33,7 +33,7 @@ def read_sources(grouped: dict[Role, list[Path]], image_text: dict[str, str]) ->
     for role, paths in grouped.items():
         texts: list[str] = []
         for path in paths:
-            if role in {Role.DB, Role.MEETING_NOTES, Role.REPORT_REQUEST, Role.GUIDANCE}:
+            if role in {Role.DB, Role.MEETING_NOTES, Role.REPORT_REQUEST, Role.GUIDANCE, Role.UNKNOWN}:
                 texts.append(read_file(path))
             elif role is Role.IMAGE and path.name in image_text:
                 texts.append(image_text[path.name])

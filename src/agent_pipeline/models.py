@@ -82,6 +82,7 @@ class Gap(BaseModel):
     field: str
     reason: str
     section: str | None = None  # which report section it surfaces in
+    review: bool = False  # raised from an unrecognised document — surface prominently for review
 
     def marker(self) -> str:
         return f"[FLAG: {self.field} — {self.reason}]"

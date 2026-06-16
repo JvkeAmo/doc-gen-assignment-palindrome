@@ -22,6 +22,7 @@ class Role(str, Enum):
     GUIDANCE = "guidance"  # fde_notes: rules + per-client hints
     IMAGE = "image"  # statement image, needs OCR
     DECOY = "decoy"  # general market/portfolio docs — excluded
+    UNKNOWN = "unknown"  # unrecognised file: kept, but routed to an exploratory pass + flagged
 
 
 # Filenames whose content must never reach extraction or generation.
@@ -52,8 +53,9 @@ def classify(path: Path) -> Role | None:
         return Role.REPORT_REQUEST
     if stem == "fde_notes":
         return Role.GUIDANCE
-    # Unknown file: keep it as guidance rather than silently dropping it.
-    return Role.GUIDANCE
+    # Unrecognised file: route it to the exploratory unknown-document pass rather than folding it
+    # into the structured extraction (where novel content can be silently missed) or dropping it.
+    return Role.UNKNOWN
 
 
 def triage_folder(client_dir: Path) -> dict[Role, list[Path]]:

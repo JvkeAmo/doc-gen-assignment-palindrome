@@ -231,6 +231,54 @@ def test_check_report_only_requires_gaps_for_present_sections():
     assert check_report(_portfolio_style_report(), ledger, check_tax=False) == []
 
 
+def test_triage_routes_unrecognised_file_to_unknown():
+    from pathlib import Path
+
+    from agent_pipeline.triage import Role, classify
+
+    assert classify(Path("mystery_letter.txt")) is Role.UNKNOWN  # unrecognised -> exploratory pass
+    assert classify(Path("fde_notes.md")) is Role.GUIDANCE  # known guidance unchanged
+    assert classify(Path("template_spec.md")) is None  # ignored unchanged
+
+
+def test_unknown_document_discovers_account_and_flags_unmapped():
+    import json as _json
+
+    from agent_pipeline.extract import extract_facts
+    from agent_pipeline.triage import Role
+
+    accounts, _ = parse_db(DB_JSON)
+    explore_json = _json.dumps(
+        {
+            "discovered_accounts": [
+                {"account_id": "OFFSHORE-1", "type": "Offshore Bond", "owner": "A", "value": 50000,
+                 "as_of": "2026-05-01"}
+            ],
+            "unmapped": ["mentions a possible trust arrangement"],
+        }
+    )
+    client = _StubClient([explore_json])
+    facts = extract_facts(client, "m", accounts, {Role.UNKNOWN: "some novel document text"})
+    ledger = reconcile(accounts, facts)
+
+    discovered = next(a for a in ledger.accounts if a.account_id == "OFFSHORE-1")
+    assert discovered.value_source == "unknown" and discovered.in_scope  # kept, provenance-tagged
+    assert any(g.review and "OFFSHORE-1" in g.field for g in ledger.gaps)  # flagged for review
+    assert any(g.review and g.reason == "mentions a possible trust arrangement" for g in ledger.gaps)
+
+
+def test_review_flags_surface_in_holdings_table():
+    from agent_pipeline.render import render_holdings_table
+
+    ledger = ClientLedger(
+        client="A",
+        accounts=[Account(account_id="ISA-A", owner="A", type="ISA", value=61000.0)],
+        gaps=[Gap(field="unreviewed material", reason="a trust", section="Background & Objectives", review=True)],
+    )
+    table = render_holdings_table(ledger)["table"]
+    assert "[FLAG: unreviewed material — a trust]" in table  # surfaced, not buried in the ledger
+
+
 def test_verify_passes_a_clean_report():
     ledger = ClientLedger(
         client="A",

@@ -46,6 +46,17 @@ class ExternalFundLite(BaseModel):
     note: str | None = None
 
 
+class DiscoveredAccount(BaseModel):
+    """An account an unrecognised document reveals that is NOT in the system-of-record db."""
+
+    account_id: str | None = None
+    type: str | None = None
+    owner: str | None = None
+    value: float | None = None
+    as_of: str | None = None
+    note: str | None = None
+
+
 class ExtractedFacts(BaseModel):
     client_label: str | None = None
     risk_profile: str | None = None
@@ -58,9 +69,13 @@ class ExtractedFacts(BaseModel):
     live_values: list[LiveValue] = Field(default_factory=list)
     external_funds: list[ExternalFundLite] = Field(default_factory=list)
     guidance: list[str] = Field(default_factory=list)
+    # Populated only by the exploratory pass over unrecognised documents:
+    discovered_accounts: list[DiscoveredAccount] = Field(default_factory=list)
+    unmapped: list[str] = Field(default_factory=list)  # material found but not categorisable
 
     @field_validator(
-        "scope_account_ids", "objectives", "investment_amounts", "actions", "guidance", mode="before"
+        "scope_account_ids", "objectives", "investment_amounts", "actions", "guidance", "unmapped",
+        mode="before",
     )
     @classmethod
     def _coerce_scalar_to_list(cls, v):
@@ -69,7 +84,7 @@ class ExtractedFacts(BaseModel):
             return []
         return v if isinstance(v, list) else [v]
 
-    @field_validator("live_values", "external_funds", mode="before")
+    @field_validator("live_values", "external_funds", "discovered_accounts", mode="before")
     @classmethod
     def _coerce_dict_to_list(cls, v):
         if v is None:
@@ -194,6 +209,24 @@ def _statement_prompt(accounts: list[Account], text: str) -> str:
     )
 
 
+def _explore_prompt(accounts: list[Account], text: str) -> str:
+    """Prompt for an unrecognised document: discover novel facts, flag what can't be categorised."""
+    return (
+        "You are reading an UNRECOGNISED client document. We do not know its format, so read it "
+        "carefully and extract anything material for an investment advice report.\n\n"
+        f"{_anchor(accounts)}\n\n=== unknown_document ===\n{text}\n\n"
+        "Return a JSON object with exactly these keys:\n"
+        '  "live_values": list of {account_id, description, value, as_of, note} for a value this '
+        "document gives for one of the KNOWN accounts above (match account_id where possible);\n"
+        '  "discovered_accounts": list of {account_id, type, owner, value, as_of, note} for any '
+        "account this document reveals that is NOT in the database above;\n"
+        '  "actions": short phrases of what the client should do with their investments;\n'
+        '  "guidance": short notes an adviser should handle sensitively;\n'
+        '  "unmapped": list of short strings for any material you found but could not place into the '
+        "keys above, so a human can review it. Never invent figures."
+    )
+
+
 def _extract_source(
     client: OpenAI, model: str, prompt: str, name: str, recorder: RunRecorder | None
 ) -> ExtractedFacts:
@@ -221,6 +254,8 @@ def merge_facts(parts: list[ExtractedFacts]) -> ExtractedFacts:
         out.live_values += p.live_values
         out.external_funds += p.external_funds
         out.guidance += p.guidance
+        out.discovered_accounts += p.discovered_accounts
+        out.unmapped += p.unmapped
     return out
 
 
@@ -246,5 +281,11 @@ def extract_facts(
     if Role.IMAGE in sources:
         prompt = _statement_prompt(accounts, sources[Role.IMAGE])
         parts.append(_extract_source(client, model, prompt, "extract:statement", recorder))
+
+    # Exploratory pass over unrecognised documents — fires only when one is present, so the normal
+    # case pays nothing. It can discover accounts not in the db and flag material it can't categorise.
+    if Role.UNKNOWN in sources:
+        prompt = _explore_prompt(accounts, sources[Role.UNKNOWN])
+        parts.append(_extract_source(client, model, prompt, "extract:unknown", recorder))
 
     return merge_facts(parts)

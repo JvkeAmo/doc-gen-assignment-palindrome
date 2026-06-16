@@ -162,7 +162,35 @@ sourced figure, so the recommendation can state it and verification accepts it (
 would be unsourced and often wrong). client_04: completion £850k − bridging £200k = £650k investable,
 earnout £400k excluded. Asserted by the golden ledgers.
 
+## Second document type: a new config, the same ledger
+
+Because every section is generated from the reconciled `ClientLedger` and (after the rebalance above)
+all wording lives in the config, a second document type is just a second config —
+`config/portfolio_review_config.json`, a short high-level review — that reuses the same ledger and the
+same renderers/prose slots with **no new `src/` logic**. A config can declare a `doc_id` (output
+suffix, so it doesn't overwrite the advice report) and which checks apply: the portfolio review has no
+Tax section, so it sets `"verification": {"tax_section": false}`. `verify.check_report` gained a
+`check_tax` flag (default keeps the advice report unchanged) and now only requires a gap's flag when
+the section it belongs to is actually present in that document. This is the cheap proof that data
+(ledger) and presentation (config) are genuinely separate.
+
+## Unknown documents: route, explore, flag — never silently miss
+
+Triage is filename-based, so an unfamiliar file is a real risk. Rather than fold it into the structured
+extraction (where novel content can be silently skipped, since that prompt only looks for known fields)
+or drop it, an unrecognised file is routed to a new `Role.UNKNOWN` and read by a separate **exploratory
+LLM pass that fires only when an unknown file is present** (no cost otherwise). That pass can surface
+values for known accounts, **discover accounts not in the db**, and list **`unmapped`** material it
+can't categorise. Reconciliation *uses* what it found but *flags* it: discovered accounts enter the
+ledger tagged `value_source="unknown"` with a review flag, and unmapped notes become review flags —
+both surfaced under the holdings table. This is the route-don't-drop principle for held-out
+robustness: never silently trust an unvetted source, never silently discard material. It is idle on
+the four example clients (none has an unknown file) and proven by unit tests. Honest boundary: a fresh
+*value for a known account* taken from an unknown source currently merges via the normal recency path;
+per-value "unknown" provenance flagging is a future refinement.
+
 ## To take further (noted, not yet done)
-- Use judge scores to drive prompt tuning (the "prompts as code" loop).
-- An exploratory pass for unrecognised documents (discovery + review flags).
-- Multiple document types reusing the ledger (config-only).
+- Use judge scores to drive prompt tuning (the "prompts as code" loop) — the lightweight version is a
+  judge-scored A/B over prompt variants, committing the winner (prompts-as-code via visible history).
+- Per-value provenance flagging for values a known account receives from an unrecognised source.
+- A vision pass (read + interpret in one step) for unrecognised images, vs. the current OCR→text path.

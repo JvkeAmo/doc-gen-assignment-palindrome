@@ -66,11 +66,19 @@ def render_scope(ledger: ClientLedger) -> dict:
 
 
 def render_holdings_table(ledger: ClientLedger) -> dict:
-    """Field {table}: the holdings table (structural, so it stays code-built)."""
+    """Field {table}: the holdings table (structural, so it stays code-built).
+
+    Any review flags raised from unrecognised documents are surfaced just below the table, so
+    discovered accounts and uncategorised material are visible rather than buried in the ledger.
+    """
     rows = ["| Account | Owner | Type | Value |", "|---|---|---|---|"]
     for a in ledger.scoped_accounts():
         rows.append(f"| {a.account_id} | {a.owner} | {a.type} | {_money(a, ledger)} |")
-    return {"table": "\n".join(rows)}
+    table = "\n".join(rows)
+    review_markers = [gap.marker() for gap in ledger.gaps if gap.review]
+    if review_markers:
+        table += "\n\n" + "\n".join(review_markers)
+    return {"table": table}
 
 
 def render_cgt_statement(ledger: ClientLedger) -> dict:

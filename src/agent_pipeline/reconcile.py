@@ -83,6 +83,37 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
             # The db had no figure at all; take the observed one (nothing to conflict with).
             _apply_observed_value(acc, lv.value, live_date)
 
+    # --- discovered accounts from unrecognised documents (kept, but flagged for review) ----
+    review_gaps: list[Gap] = []
+    for index, found in enumerate(facts.discovered_accounts, start=1):
+        aid = found.account_id or f"NEW-{index}"
+        if aid in by_id:
+            continue  # the document is talking about an account we already know
+        account = Account(
+            account_id=aid,
+            owner=found.owner or "unknown",
+            type=found.type or "unknown",
+            value=found.value,
+            valuation_date=_parse_date(found.as_of),
+            in_scope=True,
+            approximate=True,
+            value_source="unknown",
+        )
+        accounts.append(account)
+        by_id[aid] = account
+        review_gaps.append(
+            Gap(
+                field=f"{aid} (discovered)",
+                reason="account found in an unrecognised document; verify before relying on it",
+                section="Background & Objectives",
+                review=True,
+            )
+        )
+    for note in facts.unmapped:
+        review_gaps.append(
+            Gap(field="unreviewed material", reason=note, section="Background & Objectives", review=True)
+        )
+
     # --- disposal flag (drives the Tax section) --------------------------------------------
     disposal = bool(facts.selling) or any(_is_disposal(a) for a in facts.actions)
 
@@ -107,6 +138,7 @@ def reconcile(accounts: list[Account], facts: ExtractedFacts) -> ClientLedger:
                 section="Tax Implications",
             )
         )
+    gaps.extend(review_gaps)  # discovered accounts / unmapped material from unrecognised documents
 
     actions = [Action(text=t, is_disposal=_is_disposal(t)) for t in facts.actions]
     external = [
