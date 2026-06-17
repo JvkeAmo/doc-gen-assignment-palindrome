@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-Margaret Hughes is retired, does not require income, and is comfortable with a moderate risk profile. Her focus is on maintaining her current financial position while preserving capital within her Stocks & Shares ISA. No urgent action is required regarding gifting to grandchildren, as this does not currently impact her financial strategy.
+Margaret Hughes is retired, does not require income, and is comfortable with a moderate risk profile, with her investments currently held in a Stocks & Shares ISA. We note her interest in potentially discussing gifting to grandchildren in the future, though no action is required at this time.
 
 The accounts covered by this report are as follows:
 
@@ -25,6 +25,12 @@ We recommend transferring £20,000 from H-CASH-01 to H-ISA-01. This action will 
 ## Fees & Charges
 
 The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0%. [FLAG: platform charge — ongoing platform charge to confirm] [FLAG: advice charge — ongoing advice charge to confirm]
+
+## Next Steps
+
+Before we finalise, there are some outstanding items to confirm:
+
+- You also hold a Cash Account (H-CASH-01, £25,000) that is not covered by this report. Please confirm whether it should be included or reviewed separately.
 
 ## Conclusion
 

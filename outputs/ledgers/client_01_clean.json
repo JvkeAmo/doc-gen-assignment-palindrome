@@ -48,12 +48,14 @@
     {
       "field": "platform charge",
       "reason": "ongoing platform charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     },
     {
       "field": "advice charge",
       "reason": "ongoing advice charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     }
   ],
   "objectives": [
@@ -65,7 +67,7 @@
     20000.0
   ],
   "guidance": [
-    "No immediate action required on gifting to grandchildren"
+    "Client mentioned potential future discussion on gifting to grandchildren, but no action to be taken now."
   ],
   "conflicts": []
 }

@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We are focused on achieving long-term growth for Robert and Jean Fletcher, given their moderate risk tolerance and the absence of immediate income requirements. We will ensure the inheritance from Jean's mother is handled with care, aligning with their broader financial goals. The current portfolio, which includes Stocks & Shares ISAs and a General Investment Account, is structured to support these objectives while maintaining a balanced approach.
+We understand that Robert and Jean Fletcher seek long-term growth with no immediate income requirements, and we will ensure the inheritance from Jean's mother is managed with care. Their portfolio includes Stocks & Shares ISAs and a General Investment Account, aligned with their moderate risk profile.
 
 The accounts covered by this report are as follows:
 
@@ -22,7 +22,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA in full. The GIA currently holds £38,000. The available amount to invest now is £120,000. We recommend topping up both ISAs equally and opening a new jointly-held investment account for the balance. This approach ensures the ISAs are maximized and the remaining funds are invested in a new account.
+We recommend disinvesting the joint GIA (currently £38,000) in full. The proceeds from this disinvestment, along with the new money available (£120,000), should be used to top up both ISAs equally. The Stocks & Shares ISA (H-ISA-R) currently holds £70,000, and the Stocks & Shares ISA (H-ISA-JE) currently holds £66,000. After topping up both ISAs equally, the remaining balance should be transferred to a new jointly-held investment account.
 
 ## Tax Implications
 
@@ -33,6 +33,12 @@ The recommended disposal may give rise to a capital gains tax liability, which w
 ## Fees & Charges
 
 The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0.5%. [FLAG: platform charge — ongoing platform charge to confirm] [FLAG: advice charge — ongoing advice charge to confirm]
+
+## Next Steps
+
+Before we finalise, there are some outstanding items to confirm:
+
+- You also hold a Cash Account (H-CASH-JE, balance to be confirmed) that is not covered by this report. Please confirm whether it should be included or reviewed separately.
 
 ## Conclusion
 

@@ -28,7 +28,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend confirming Caroline's Meridian cash balance to ensure accuracy in current holdings. Confirm the timing of the bridging-loan repayment to align with cash flow requirements. Disinvest a portion of the Holloway joint GIA to rebalance the portfolio, using the available to invest now amount of £650,000. Utilise ISA allowances for the new tax year by allocating funds to the existing Stocks & Shares ISAs. Make pension contributions to both SIPPs to maximise tax efficiency. Add the remaining balance to the Holloway joint GIA and place any leftover funds into a new jointly-held investment account to streamline management and enhance liquidity.
+We recommend confirming Caroline's Meridian cash balance to ensure accuracy before proceeding. Confirm the timing of the bridging-loan repayment, as this will impact cash flow planning. Disinvest a portion of the Holloway joint GIA (£255,000 approx.) and rebalance the portfolio to align with current objectives. Use the available ISA allowances for the new tax year to invest in the Stocks & Shares ISAs (£85,000 and £82,000). Make pension contributions to both SIPPs (£610,000 and £430,000) to optimise tax efficiency. Add the proceeds from the disinvestment to the Holloway joint GIA. Place the remaining balance into a new jointly-held investment account. The new money available to invest now is £650,000, sourced from the completion payment (£850,000) and the deferred earnout (£400,000). The bridging-loan repayment of £200,000 is committed and should be factored into liquidity management. Ensure the cash balance in the M4-CASH-C account is confirmed, as its value is not currently captured.
 
 ## Tax Implications
 

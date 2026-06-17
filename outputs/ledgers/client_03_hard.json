@@ -93,17 +93,20 @@
     {
       "field": "platform charge",
       "reason": "ongoing platform charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     },
     {
       "field": "advice charge",
       "reason": "ongoing advice charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     },
     {
       "field": "capital gains tax",
       "reason": "liability on the disposal to be confirmed by adviser",
-      "section": "Tax Implications"
+      "section": "Tax Implications",
+      "review": false
     }
   ],
   "objectives": [
