@@ -132,9 +132,18 @@ def _recommendation_context(ledger: ClientLedger) -> str:
     if ledger.amounts:
         lines.append("Amounts involved: " + ", ".join(f"£{a:,.0f}" for a in ledger.amounts))
     if ledger.external_funds:
-        lines.append("Other funds (use 'available to invest now' as the investable total):")
+        lines.append("New money available to invest (separate from the existing accounts above):")
         for line in funds_breakdown(ledger.external_funds):
             lines.append(f"- {line}")
+    if ledger.disposal:
+        # The funds total above is NEW money only. Disinvesting an account also frees its value to
+        # reinvest, so the two are separate components — never a single combined figure (which would
+        # be an unsourced, computed number the verifier rejects anyway).
+        lines.append(
+            "Note: the funds to invest come from TWO separate sources — the new money above AND the "
+            "proceeds of any account being disinvested (use the account values listed above). State "
+            "each relevant figure on its own; do NOT add them into a single total."
+        )
     return "\n".join(lines)
 
 

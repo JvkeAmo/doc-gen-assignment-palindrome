@@ -231,7 +231,34 @@ def test_check_report_only_requires_gaps_for_present_sections():
     assert check_report(_portfolio_style_report(), ledger, check_tax=False) == []
 
 
-def test_triage_routes_unrecognised_file_to_unknown():
+def test_is_disposal_covers_synonyms_but_not_transfers():
+    from agent_pipeline.reconcile import _is_disposal
+
+    assert _is_disposal("liquidate the holdings")
+    assert _is_disposal("encash the bond")
+    assert _is_disposal("disinvest the joint GIA in full")
+    # moving cash into an ISA is NOT a disposal (client_01 must not get a Tax section)
+    assert not _is_disposal("transfer £20,000 from H-CASH-01 to H-ISA-01")
+
+
+def test_recommendation_context_separates_new_money_from_disposal_proceeds():
+    from agent_pipeline.models import Action, ExternalFund
+    from agent_pipeline.render import _recommendation_context
+
+    ledger = ClientLedger(
+        client="A",
+        disposal=True,
+        accounts=[Account(account_id="GIA-J", owner="Joint", type="GIA", value=38000.0)],
+        external_funds=[ExternalFund(label="inheritance", amount=120000, kind="available")],
+        amounts=[120000.0],
+        actions=[Action(text="disinvest the joint GIA in full", is_disposal=True)],
+    )
+    context = _recommendation_context(ledger)
+    # the £120k is framed as NEW money, not "the investable total"...
+    assert "New money available to invest" in context
+    # ...and the model is told disposal proceeds are a separate component, not to be summed.
+    assert "two separate sources" in context.lower() or "two separate" in context.lower()
+    assert "do not add them into a single total" in context.lower()
     from pathlib import Path
 
     from agent_pipeline.triage import Role, classify

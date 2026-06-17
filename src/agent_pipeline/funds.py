@@ -33,5 +33,7 @@ def funds_breakdown(funds: list[ExternalFund]) -> list[str]:
         lines.append(f"{f.label}: {amount} [{f.kind}]")
     total = available_to_invest(funds)
     if total is not None:
-        lines.append(f"=> available to invest now: £{total:,.0f}")
+        # Be precise: this is NEW external money. It deliberately excludes proceeds from disinvesting
+        # existing accounts (those are separate, and reported via the account values).
+        lines.append(f"=> new money available to invest now (excludes any disposal proceeds): £{total:,.0f}")
     return lines

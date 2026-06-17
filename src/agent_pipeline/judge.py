@@ -36,7 +36,7 @@ def _ledger_summary(ledger: ClientLedger) -> str:
         lines.append(f"- external fund: {f.label} {amount} [{f.kind}]")
     investable = available_to_invest(ledger.external_funds)
     if investable is not None:
-        lines.append(f"Available to invest now: £{investable:,.0f}")
+        lines.append(f"New money available to invest now (excludes disposal proceeds): £{investable:,.0f}")
     if ledger.actions:
         lines.append("Agreed actions: " + "; ".join(a.text for a in ledger.actions))
     if ledger.guidance:

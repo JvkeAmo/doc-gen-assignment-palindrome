@@ -26,7 +26,14 @@ from agent_pipeline.models import (
     Gap,
 )
 
-_DISPOSAL_WORDS = ("disinvest", "sell", "dispos", "rebalance", "withdraw")
+# Disposal verbs (substrings, so "disposal"/"disposing" both match). The PRIMARY disposal signal is
+# the report_request's "Selling existing investments?" field (facts.selling); this keyword scan of the
+# agreed actions is a backstop for when that field is absent or a disposal is only described in prose.
+# Deliberately excludes "transfer" — moving cash into an ISA is not a disposal (e.g. client_01).
+_DISPOSAL_WORDS = (
+    "disinvest", "sell", "dispos", "rebalance", "withdraw",
+    "liquidat", "realis", "encash", "redeem", "cash in",
+)
 
 
 def _is_disposal(text: str) -> bool:
