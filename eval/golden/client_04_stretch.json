@@ -1,8 +1,8 @@
 {
-  "_comment": "GIA fresher (255000 @ 2026-05-20) over db/image stale 240000; closed M4-OLD-C excluded from scope; null cash flagged; earnout not available. Only critical accounts asserted; scope asserts the full open set.",
+  "_comment": "Scope = report_request 'Accounts covered': the Holloway ISAs, Brightwell SIPPs, both joint GIAs, and the Meridian OFFSHORE BOND (+ a new joint account). The two Meridian CASH accounts (M4-CASH-J, M4-CASH-C) are held but NOT covered by this report -> out of scope, surfaced as Next Steps loose ends (the meeting note's 'she will confirm' action), not as holdings-table flags. Closed M4-OLD-C disregarded. GIA fresher (255000 @ 2026-05-20) over db/image stale 240000; earnout contingent (not available).",
   "disposal": true,
   "charges_initial": "0.5%",
-  "scope": ["H4-ISA-J", "H4-GIA-HJ", "B4-SIPP-J", "B4-GIA-J", "M4-BOND-J", "M4-CASH-J", "H4-ISA-C", "B4-SIPP-C", "M4-CASH-C"],
+  "scope": ["H4-ISA-J", "H4-ISA-C", "H4-GIA-HJ", "B4-SIPP-J", "B4-SIPP-C", "B4-GIA-J", "M4-BOND-J"],
   "accounts": {
     "H4-GIA-HJ": { "value": 255000, "valuation_date": "2026-05-20", "status": "open" },
     "B4-SIPP-J": { "value": 610000, "valuation_date": "2026-04-30", "status": "open" },
@@ -16,5 +16,5 @@
     { "amount": 200000, "kind": "committed" }
   ],
   "available_to_invest": 650000,
-  "gaps_include": ["M4-CASH-C", "capital gains tax", "platform charge", "advice charge"]
+  "gaps_include": ["capital gains tax", "platform charge", "advice charge"]
 }
