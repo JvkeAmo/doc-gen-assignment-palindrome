@@ -165,14 +165,19 @@ earnout £400k excluded. Asserted by the golden ledgers.
 ## Second document type: a new config, the same ledger
 
 Because every section is generated from the reconciled `ClientLedger` and (after the rebalance above)
-all wording lives in the config, a second document type is just a second config —
-`config/portfolio_review_config.json`, a short high-level review — that reuses the same ledger and the
-same renderers/prose slots with **no new `src/` logic**. A config can declare a `doc_id` (output
-suffix, so it doesn't overwrite the advice report) and which checks apply: the portfolio review has no
-Tax section, so it sets `"verification": {"tax_section": false}`. `verify.check_report` gained a
-`check_tax` flag (default keeps the advice report unchanged) and now only requires a gap's flag when
-the section it belongs to is actually present in that document. This is the cheap proof that data
-(ledger) and presentation (config) are genuinely separate.
+all wording lives in the config, a second document type is just a second config that reuses the same
+ledger and renderers with **no new `src/` logic** — the proof that data (ledger) and presentation
+(config) are genuinely separate. The included example, `config/adviser_review_config.json`, is an
+**internal reconciliation review sheet**: it surfaces the conflict log (which source we trusted and
+why), per-account value provenance, and every outstanding flag. That deliberately demonstrates the
+rubric's "which source to trust when sources disagree" — as a document, not buried in the ledger JSON.
+
+Configs declare a `doc_id` (output suffix, so it doesn't overwrite the advice report) and which checks
+apply. The review sheet sets `"client_facing": false`, so it gets a minimal "did it render" check
+(`verify.check_internal`) rather than the client-report compliance rules — an audit view legitimately
+shows stale/rejected values and closed accounts. (`verify.check_report` also gained a `check_tax` flag,
+default-on, and only requires a gap's flag when its section is present — so a client-facing doc without
+a Tax section stays supported too.)
 
 ## Unknown documents: route, explore, flag — never silently miss
 

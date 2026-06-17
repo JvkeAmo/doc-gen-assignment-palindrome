@@ -5,7 +5,7 @@ reconciliation, and the verification checks. Run with ``uv run pytest``.
 """
 
 from agent_pipeline.extract import ExtractedFacts, LiveValue, merge_facts, parse_db
-from agent_pipeline.models import Account, Charges, ClientLedger, Gap
+from agent_pipeline.models import Account, Charges, ClientLedger, Conflict, Gap
 from agent_pipeline.reconcile import reconcile
 from agent_pipeline.render import fill_placeholder, generate_with_reflection
 from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report, critique_slot
@@ -277,6 +277,39 @@ def test_next_steps_surfaces_out_of_scope_accounts_only():
     assert "CASH-OLD" in items and "balance to be confirmed" in items
     assert "ISA-A" not in items  # in scope — not a loose end
     assert "OLD-C" not in items  # closed — excluded
+
+
+def test_render_review_shows_conflicts_provenance_and_flags():
+    from agent_pipeline.render import render_review
+
+    ledger = ClientLedger(
+        client="Robert and Jean",
+        accounts=[
+            Account(account_id="GIA-J", owner="Joint", type="GIA", value=38000.0, value_source="observed"),
+            Account(account_id="ISA-A", owner="A", type="ISA", value=70000.0, value_source="db"),
+        ],
+        conflicts=[
+            Conflict(
+                field="GIA-J.value",
+                chose="38000 @ 2026-05-16 (observed)",
+                over="30000 @ 2026-03-10 (db snapshot)",
+                rule="most-recent-valuation-wins",
+            )
+        ],
+        gaps=[Gap(field="platform charge", reason="to confirm", section="Fees & Charges")],
+    )
+    fields = render_review(ledger)
+    assert "most-recent-valuation-wins" in fields["conflicts"]  # which source we trusted
+    assert "fresher observed value" in fields["provenance"]
+    assert "system of record (db)" in fields["provenance"]
+    assert "platform charge" in fields["flags"]
+
+
+def test_check_internal_only_flags_unfilled_placeholders():
+    from agent_pipeline.verify import check_internal
+
+    assert check_internal("# Review\n\nClient: A\n\nall rendered") == []
+    assert check_internal("# Review for <<client>>")  # an unfilled placeholder is caught
 
 
 def test_triage_routes_unrecognised_file_to_unknown():

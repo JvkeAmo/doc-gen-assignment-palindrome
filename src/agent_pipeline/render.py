@@ -112,12 +112,43 @@ def render_next_steps(ledger: ClientLedger) -> dict:
     return {"items": "\n".join(items)}
 
 
+def render_review(ledger: ClientLedger) -> dict:
+    """Fields for the internal reconciliation review sheet.
+
+    This is the audit view of the ledger: it *shows its working* — which source won each conflict and
+    why, where every value came from, and every outstanding flag. It is exactly the "which source did
+    you trust when sources disagreed" evidence, surfaced as a document rather than buried in the JSON.
+    """
+    if ledger.conflicts:
+        conflicts = "\n".join(
+            f"- {c.field}: chose {c.chose} over {c.over} ({c.rule})" for c in ledger.conflicts
+        )
+    else:
+        conflicts = "- None — every value came straight from the system of record."
+
+    source_labels = {
+        "db": "system of record (db)",
+        "observed": "fresher observed value",
+        "unknown": "unrecognised document",
+    }
+    rows = ["| Account | Value | Source | In scope |", "|---|---|---|---|"]
+    for a in ledger.accounts:
+        value = "—" if a.value is None else f"£{a.value:,.0f}"
+        source = source_labels.get(a.value_source, a.value_source or "—")
+        rows.append(f"| {a.account_id} | {value} | {source} | {'yes' if a.in_scope else 'no'} |")
+    provenance = "\n".join(rows)
+
+    flags = "\n".join(f"- {gap.marker()}" for gap in ledger.gaps) or "- None."
+    return {"client": ledger.client, "conflicts": conflicts, "provenance": provenance, "flags": flags}
+
+
 RENDERERS = {
     "scope": render_scope,
     "holdings_table": render_holdings_table,
     "cgt_statement": render_cgt_statement,
     "fees": render_fees,
     "next_steps": render_next_steps,
+    "review": render_review,
 }
 
 

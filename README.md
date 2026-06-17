@@ -40,15 +40,17 @@ Clients live under `data/`: `client_01_clean`, `client_02_medium`, `client_03_ha
 
 Because every section is generated from the reconciled `ClientLedger` and all wording lives in the
 config, a second document type is just a second config that reuses the same ledger and renderers — no
-new `src/` code. For example, a shorter portfolio review:
+new `src/` code. The included example is an **internal reconciliation review sheet** that shows the
+conflict log (which source we trusted, and why), value provenance, and every outstanding flag:
 
 ```bash
-uv run python -m agent_pipeline.generate --client client_02_medium --config config/portfolio_review_config.json
-# report -> outputs/client_02_medium__portfolio_review.md
+uv run python -m agent_pipeline.generate --client client_03_hard --config config/adviser_review_config.json
+# report -> outputs/client_03_hard__adviser_review.md
 ```
 
-A config can declare a `doc_id` (output suffix) and which checks apply (e.g. a doc with no Tax
-section sets `"verification": { "tax_section": false }`).
+A config can declare a `doc_id` (output suffix), `"client_facing": false` (an internal doc gets a
+minimal render check instead of the client-report compliance checks), and which checks apply
+(e.g. a client doc with no Tax section sets `"verification": { "tax_section": false }`).
 
 ## Evaluate
 

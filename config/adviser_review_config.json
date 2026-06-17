@@ -1,0 +1,21 @@
+{
+  "document_title": "Internal Reconciliation Review",
+  "doc_id": "adviser_review",
+  "client_facing": false,
+  "global_instructions": "",
+  "_comment": "A SECOND document type generated from the same ClientLedger with no new src/ logic — proof that data (ledger) and presentation (config) are separate. This one is INTERNAL (not for the client): it shows the conflict log (which source we trusted, and why), value provenance, and every outstanding flag, i.e. it demonstrates the 'which source to trust when sources disagree' reconciliation directly. client_facing:false, so the client-report compliance checks (verbatim lines, Tax-iff-disposal, figures-must-trace-to-ledger) don't apply — an audit view deliberately shows stale/rejected values and closed accounts. Run: generate --client <name> --config config/adviser_review_config.json -> outputs/<name>__adviser_review.md",
+  "sections": [
+    {
+      "id": "review",
+      "title": "Reconciliation Review — internal, not for client distribution",
+      "use_if": "always",
+      "template": "<<review>>",
+      "placeholders": {
+        "review": {
+          "source": "render:review",
+          "template": "Client: {client}\n\n### Source conflicts (which source we trusted, and why)\n\n{conflicts}\n\n### Value provenance\n\n{provenance}\n\n### Outstanding flags for a human to finalise\n\n{flags}"
+        }
+      }
+    }
+  ]
+}

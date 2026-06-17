@@ -13,11 +13,11 @@
       "justMyCode": true
     },
     {
-      "name": "Generate: portfolio review (2nd doc type, same ledger)",
+      "name": "Generate: adviser review sheet (2nd doc type — provenance + conflicts)",
       "type": "debugpy",
       "request": "launch",
       "module": "agent_pipeline.generate",
-      "args": ["--client", "${input:client}", "--config", "config/portfolio_review_config.json"],
+      "args": ["--client", "${input:client}", "--config", "config/adviser_review_config.json"],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
       "python": "${workspaceFolder}/.venv/bin/python",

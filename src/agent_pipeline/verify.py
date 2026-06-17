@@ -71,6 +71,18 @@ def critique_slot(name: str, text: str, ledger: ClientLedger) -> list[str]:
     return problems
 
 
+def check_internal(report: str) -> list[str]:
+    """Minimal check for non-client-facing diagnostic docs (e.g. the reconciliation review sheet).
+
+    The client-report compliance rules (verbatim lines, Tax-iff-disposal, no out-of-ledger figures)
+    do not apply to an internal audit view — it deliberately shows stale/rejected values, closed
+    accounts and provenance. We only assert that the document was fully rendered.
+    """
+    if re.search(r"<<\w+>>", report):
+        return ["Unfilled <<placeholder>> left in the report."]
+    return []
+
+
 def check_report(report: str, ledger: ClientLedger, *, check_tax: bool = True) -> list[str]:
     """Verify a report against its ledger.
 

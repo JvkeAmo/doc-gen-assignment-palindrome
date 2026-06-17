@@ -22,7 +22,7 @@ from agent_pipeline.reconcile import reconcile
 from agent_pipeline.render import fill_placeholder
 from agent_pipeline.runlog import RunRecorder
 from agent_pipeline.triage import Role, triage_folder
-from agent_pipeline.verify import check_report
+from agent_pipeline.verify import check_internal, check_report
 from document_formatter.formatting import format_document
 from document_formatter.loading import read_file
 
@@ -111,13 +111,17 @@ def main() -> None:
     with recorder.stage("generate"):
         report = generate_report(config, ledger, client, model, recorder)
     with recorder.stage("verify"):
-        # A config can declare which checks apply (e.g. a non-advice doc has no Tax section).
-        check_tax = bool(config.get("verification", {}).get("tax_section", True))
-        problems = check_report(report, ledger, check_tax=check_tax)
+        if config.get("client_facing", True):
+            # A config can declare which checks apply (e.g. a non-advice doc has no Tax section).
+            check_tax = bool(config.get("verification", {}).get("tax_section", True))
+            problems = check_report(report, ledger, check_tax=check_tax)
+        else:
+            # Internal diagnostic doc (e.g. the review sheet): only assert it rendered fully.
+            problems = check_internal(report)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     # A second document type generated from the same client gets a doc_id suffix so it doesn't
-    # overwrite the advice report (e.g. client_02_medium__portfolio_review.md).
+    # overwrite the advice report (e.g. client_02_medium__adviser_review.md).
     doc_id = config.get("doc_id")
     out_name = f"{args.client}__{doc_id}" if doc_id else args.client
     out_path = args.output_dir / f"{out_name}.md"
