@@ -194,6 +194,21 @@ the four example clients (none has an unknown file) and proven by unit tests. Ho
 *value for a known account* taken from an unknown source currently merges via the normal recency path;
 per-value "unknown" provenance flagging is a future refinement.
 
+## Concurrency: overlap every independent LLM call
+
+The pipeline's independent model calls run concurrently (thread pools, since the work is I/O-bound on
+the model server): the per-source extraction calls, OCR over multiple images, the generation prose
+slots (summary/recommendation), and the eval's per-client judge calls. Ordering is always preserved
+where it matters — extraction merges in a fixed source order, and the report assembles by section
+index — so output stays deterministic regardless of which call returns first.
+
+Honest caveat: against a **single local Ollama GPU this is ~a no-op** — one model time-slices the
+concurrent requests, so wall-clock is roughly unchanged (telemetry shows three ~85s extraction calls
+overlapping into ~85s, not summing to ~250s). The speedup lands on a backend that genuinely serves
+requests in parallel (**OpenAI**, the assessor's run), where it cuts the dominant extract stage and
+the generation stage to about their slowest single call. Worst case it changes nothing; it never makes
+things slower. The `runlog` per-stage timings are what make this measurable.
+
 ## To take further (noted, not yet done)
 - Use judge scores to drive prompt tuning (the "prompts as code" loop) — the lightweight version is a
   judge-scored A/B over prompt variants, committing the winner (prompts-as-code via visible history).
