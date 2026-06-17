@@ -16,7 +16,7 @@ Extraction does NOT resolve conflicts — it only records what each source says;
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 from openai import OpenAI
@@ -140,8 +140,9 @@ _EXTRACT_SYSTEM = (
 )
 
 
-def _account_digest(accounts: list[Account]) -> str:
-    lines = []
+def _anchor(accounts: list[Account]) -> str:
+    """The db account digest each per-source prompt is anchored to, to preserve entity-matching."""
+    lines = ["Accounts in the system-of-record database (use these account_ids):"]
     for a in accounts:
         val = "blank" if a.value is None else f"{a.value:.0f} {a.currency}"
         lines.append(
@@ -149,13 +150,6 @@ def _account_digest(accounts: list[Account]) -> str:
             f"value {val} as of {a.valuation_date}, status {a.status}"
         )
     return "\n".join(lines)
-
-
-def _anchor(accounts: list[Account]) -> str:
-    return (
-        "Accounts in the system-of-record database (use these account_ids):\n"
-        + _account_digest(accounts)
-    )
 
 
 def _request_prompt(accounts: list[Account], text: str) -> str:
@@ -292,14 +286,12 @@ def extract_facts(
     if not tasks:
         return ExtractedFacts()
 
-    results: dict[int, ExtractedFacts] = {}
-    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
-        future_to_index = {
-            pool.submit(_extract_source, client, model, prompt, name, recorder): i
-            for i, (name, prompt) in enumerate(tasks)
-        }
-        for future in as_completed(future_to_index):
-            results[future_to_index[future]] = future.result()
+    # Run the independent calls concurrently. pool.map keeps results in task order, so the
+    # first-non-null merge stays deterministic regardless of which call returns first.
+    def run(task: tuple[str, str]) -> ExtractedFacts:
+        name, prompt = task
+        return _extract_source(client, model, prompt, name, recorder)
 
-    parts = [results[index] for index in range(len(tasks))]
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        parts = list(pool.map(run, tasks))
     return merge_facts(parts)

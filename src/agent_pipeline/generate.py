@@ -10,7 +10,7 @@ Usage:
 
 import argparse
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -51,11 +51,10 @@ def build_ledger(client_dir: Path, client, model, recorder: RunRecorder) -> Clie
     image_text: dict[str, str] = {}
     images = grouped.get(Role.IMAGE) or []
     if images:
-        # OCR each image concurrently (independent calls).
+        # OCR each image concurrently (independent calls); pool.map keeps results in image order.
         with recorder.stage("ocr"), ThreadPoolExecutor(max_workers=len(images)) as pool:
-            future_to_path = {pool.submit(read_image_text, path, recorder): path for path in images}
-            for future in as_completed(future_to_path):
-                image_text[future_to_path[future].name] = future.result()
+            texts = pool.map(lambda path: read_image_text(path, recorder), images)
+            image_text = {path.name: text for path, text in zip(images, texts)}
 
     sources = read_sources(grouped, image_text)
     db_text = sources.pop(Role.DB, "")
@@ -85,25 +84,22 @@ def generate_report(config: dict, ledger: ClientLedger, client, model, recorder:
     instructions = config.get("global_instructions", "")
     applicable = [s for s in config["sections"] if section_applies(s, ledger)]
 
-    # Fill every placeholder concurrently. The LLM prose slots (summary, recommendation) are the slow
-    # part and are independent of one another; the deterministic render slots are instant but harmless
-    # to run in a thread. Values are keyed by (section_index, name) so document assembly stays ordered
-    # and deterministic regardless of which fill finishes first.
-    fill_tasks = [
+    # Fill every placeholder concurrently. The LLM prose slots (summary, recommendation) are the slow,
+    # independent part; the deterministic render slots are instant but harmless to run in a thread.
+    # pool.map keeps results aligned with the task order, so assembly below stays deterministic.
+    tasks = [
         (index, name, spec)
         for index, section in enumerate(applicable)
         for name, spec in section.get("placeholders", {}).items()
     ]
     values: dict[tuple[int, str], str] = {}
-    if fill_tasks:
-        with ThreadPoolExecutor(max_workers=len(fill_tasks)) as pool:
-            future_to_key = {
-                pool.submit(fill_placeholder, name, spec, ledger, client, model, instructions, recorder):
-                (index, name)
-                for (index, name, spec) in fill_tasks
-            }
-            for future in as_completed(future_to_key):
-                values[future_to_key[future]] = future.result()
+    if tasks:
+        with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+            results = pool.map(
+                lambda task: fill_placeholder(task[1], task[2], ledger, client, model, instructions, recorder),
+                tasks,
+            )
+        values = {(index, name): result for (index, name, _spec), result in zip(tasks, results)}
 
     sections = []
     for index, section in enumerate(applicable):

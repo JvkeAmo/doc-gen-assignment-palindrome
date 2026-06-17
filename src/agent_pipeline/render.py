@@ -195,12 +195,6 @@ def _recommendation_context(ledger: ClientLedger) -> str:
     return "\n".join(lines)
 
 
-_LLM_CONTEXT = {
-    "summary": _summary_context,
-    "recommendation": _recommendation_context,
-}
-
-
 def generate_with_reflection(
     name: str,
     base_prompt: str,
@@ -252,7 +246,11 @@ def fill_placeholder(
         template = spec.get("template", "{value}")
         return template.format(**fields)
     # llm prose, with a critique → revise loop
-    context_fn = _LLM_CONTEXT.get(name)
-    context = context_fn(ledger) if context_fn else ""
+    if name == "summary":
+        context = _summary_context(ledger)
+    elif name == "recommendation":
+        context = _recommendation_context(ledger)
+    else:
+        context = ""
     base_prompt = f"{global_instructions}\n\n{spec.get('prompt', '')}\n\nFacts:\n{context}"
     return generate_with_reflection(name, base_prompt, ledger, client, model, recorder)

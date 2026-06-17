@@ -39,19 +39,20 @@ def evaluate(output_dir: Path, ledger_dir: Path, golden_dir: Path, judge: bool =
         report = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
         loaded.append((name, ledger, report))
 
-    # Kick off all LLM-judge calls in parallel (eval-only, soft metric); we resolve them in order
-    # below so the printed output stays deterministic.
-    pool = None
-    judge_futures: dict[str, object] = {}
+    # Run all LLM-judge calls in parallel (eval-only, soft metric). pool.map keeps results aligned
+    # with `loaded`, so the printed output below stays in order.
+    judge_scores: dict[str, dict] = {}
     if judge:
         from agent_pipeline.judge import judge_report
         from agent_pipeline.llm import build_client, model_name  # local import: only when judging
 
         judge_client, judge_model = build_client(), model_name()
-        pool = ThreadPoolExecutor(max_workers=len(loaded))
-        for name, ledger, report in loaded:
-            if report:
-                judge_futures[name] = pool.submit(judge_report, judge_client, judge_model, report, ledger)
+        with ThreadPoolExecutor(max_workers=len(loaded)) as pool:
+            scored = pool.map(
+                lambda item: judge_report(judge_client, judge_model, item[2], item[1]) if item[2] else {},
+                loaded,
+            )
+        judge_scores = {name: result for (name, _ledger, _report), result in zip(loaded, scored)}
 
     total_problems = 0
     for name, ledger, report in loaded:
@@ -78,14 +79,9 @@ def evaluate(output_dir: Path, ledger_dir: Path, golden_dir: Path, judge: bool =
             print(f"[PASS] {name}")
 
         # 3. LLM-judge quality scores (soft metric, reported not gated)
-        if name in judge_futures:
-            scores = judge_futures[name].result()
-            for dimension, result in scores.items():
-                if isinstance(result, dict):
-                    print(f"        ~ {dimension}: {result.get('score')}/5 — {result.get('reason', '')}")
-
-    if pool is not None:
-        pool.shutdown()
+        for dimension, result in judge_scores.get(name, {}).items():
+            if isinstance(result, dict):
+                print(f"        ~ {dimension}: {result.get('score')}/5 — {result.get('reason', '')}")
 
     print(f"\n{len(ledgers)} client(s) checked, {total_problems} issue(s) total.")
     return 1 if total_problems else 0
