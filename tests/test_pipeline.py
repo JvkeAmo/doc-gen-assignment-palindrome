@@ -259,6 +259,27 @@ def test_recommendation_context_separates_new_money_from_disposal_proceeds():
     # ...and the model is told disposal proceeds are a separate component, not to be summed.
     assert "two separate sources" in context.lower() or "two separate" in context.lower()
     assert "do not add them into a single total" in context.lower()
+
+
+def test_next_steps_surfaces_out_of_scope_accounts_only():
+    from agent_pipeline.render import render_next_steps
+
+    ledger = ClientLedger(
+        client="A",
+        accounts=[
+            Account(account_id="ISA-A", owner="A", type="ISA", value=61000.0, in_scope=True),
+            Account(account_id="CASH-OLD", owner="A", type="Cash Account", value=None, in_scope=False),
+            Account(account_id="OLD-C", owner="A", type="GIA", value=0.0, in_scope=False, status="closed"),
+        ],
+    )
+    assert [a.account_id for a in ledger.out_of_scope_accounts()] == ["CASH-OLD"]
+    items = render_next_steps(ledger)["items"]
+    assert "CASH-OLD" in items and "balance to be confirmed" in items
+    assert "ISA-A" not in items  # in scope — not a loose end
+    assert "OLD-C" not in items  # closed — excluded
+
+
+def test_triage_routes_unrecognised_file_to_unknown():
     from pathlib import Path
 
     from agent_pipeline.triage import Role, classify

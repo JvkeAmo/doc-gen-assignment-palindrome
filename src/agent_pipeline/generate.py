@@ -71,6 +71,9 @@ def section_applies(section: dict, ledger: ClientLedger) -> bool:
         return True
     if rule == "disposal":
         return ledger.disposal
+    if rule == "next_steps":
+        # Only include a Next Steps section when there are loose ends to confirm.
+        return bool(ledger.out_of_scope_accounts())
     return True
 
 

@@ -117,5 +117,9 @@ class ClientLedger(BaseModel):
         """Accounts actually covered by this report (closed/out-of-scope excluded)."""
         return [a for a in self.accounts if a.in_scope and a.status != "closed"]
 
+    def out_of_scope_accounts(self) -> list[Account]:
+        """Open accounts the client holds that this report does NOT cover — loose ends to confirm."""
+        return [a for a in self.accounts if not a.in_scope and a.status != "closed"]
+
     def objectives_text(self) -> str:
         return "; ".join(self.objectives)

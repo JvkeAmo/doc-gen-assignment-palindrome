@@ -61,6 +61,15 @@
       }
     },
     {
+      "id": "next_steps",
+      "title": "Next Steps",
+      "use_if": "next_steps",
+      "template": "Before we finalise, there are some outstanding items to confirm:\n\n<<next_steps>>",
+      "placeholders": {
+        "next_steps": { "source": "render:next_steps", "template": "{items}" }
+      }
+    },
+    {
       "id": "conclusion",
       "title": "Conclusion",
       "use_if": "always",

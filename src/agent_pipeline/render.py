@@ -96,11 +96,28 @@ def render_fees(ledger: ClientLedger) -> dict:
     return {"initial_charge": initial_charge, "fee_flags": fee_flags}
 
 
+def render_next_steps(ledger: ClientLedger) -> dict:
+    """Field {items}: loose ends to confirm — accounts the client holds but this report doesn't cover.
+
+    These are surfaced as soft follow-ups (not recommendations and not invented), e.g. an old cash
+    account the client mentioned but isn't sure about. Out-of-scope accounts are otherwise dropped.
+    """
+    items = []
+    for a in ledger.out_of_scope_accounts():
+        balance = "balance to be confirmed" if a.value is None else f"£{a.value:,.0f}"
+        items.append(
+            f"- You also hold a {a.type} ({a.account_id}, {balance}) that is not covered by this "
+            "report. Please confirm whether it should be included or reviewed separately."
+        )
+    return {"items": "\n".join(items)}
+
+
 RENDERERS = {
     "scope": render_scope,
     "holdings_table": render_holdings_table,
     "cgt_statement": render_cgt_statement,
     "fees": render_fees,
+    "next_steps": render_next_steps,
 }
 
 
