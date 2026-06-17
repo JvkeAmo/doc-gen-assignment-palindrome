@@ -1,6 +1,6 @@
 {
-  "client": "Robert Fletcher and Jean Fletcher",
-  "risk_profile": "moderate",
+  "client": "Robert and Jean Fletcher",
+  "risk_profile": "4 (moderate)",
   "accounts": [
     {
       "account_id": "H-ISA-R",
@@ -63,7 +63,7 @@
       "amount": null
     },
     {
-      "text": "top up both ISAs equally",
+      "text": "fund both Robert's and Jean's ISAs for the new tax year",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -77,10 +77,10 @@
   ],
   "external_funds": [
     {
-      "label": "inheritance from Jean's mother's estate",
+      "label": "inheritance from Jean's mother",
       "amount": 120000.0,
       "kind": "available",
-      "note": "Received and cleared, to be invested alongside existing portfolio"
+      "note": "inheritance has cleared"
     }
   ],
   "disposal": true,
@@ -117,7 +117,7 @@
     120000.0
   ],
   "guidance": [
-    "Handle inheritance sensitively following the recent death of Jean's mother"
+    "Handle the inheritance sensitively following the recent death of Jean's mother."
   ],
   "conflicts": [
     {

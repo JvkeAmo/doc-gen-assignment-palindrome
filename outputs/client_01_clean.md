@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-Margaret Hughes is retired, does not require income, and is comfortable with a moderate risk profile, with her investments currently held in a Stocks & Shares ISA. We note her interest in potentially discussing gifting to grandchildren in the future, though no action is required at this time.
+You are a retired individual with a moderate risk profile, and you do not require any income from your investments at this time. Your primary focus is on managing your Stocks & Shares ISA effectively to align with your financial objectives.
 
 The accounts covered by this report are as follows:
 
@@ -20,7 +20,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend transferring £20,000 from H-CASH-01 to H-ISA-01. This action will utilise the available ISA allowance and consolidate the existing holdings in the Stocks & Shares ISA (H-ISA-01), which currently stands at £52,000.
+You should consider moving £20,000 from your cash account to your Stocks & Shares ISA. This action will allow you to take advantage of the investment opportunities available within the ISA, potentially enhancing your returns compared to keeping the funds in cash. Your current balance in the Stocks & Shares ISA is £52,000, and this additional investment could further diversify your portfolio and align with your long-term financial goals. By making this transfer, you can work towards maximising the benefits of your tax-efficient investment account.
 
 ## Fees & Charges
 

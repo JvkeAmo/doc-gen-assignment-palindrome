@@ -76,7 +76,7 @@
       "currency": "GBP",
       "valuation_date": "2026-04-30",
       "status": "open",
-      "in_scope": true,
+      "in_scope": false,
       "approximate": false,
       "value_source": "db"
     },
@@ -115,7 +115,7 @@
       "currency": "GBP",
       "valuation_date": null,
       "status": "open",
-      "in_scope": true,
+      "in_scope": false,
       "approximate": false,
       "value_source": "db"
     },
@@ -128,73 +128,61 @@
       "currency": "GBP",
       "valuation_date": "2025-11-30",
       "status": "closed",
-      "in_scope": true,
+      "in_scope": false,
       "approximate": false,
       "value_source": "db"
     }
   ],
   "actions": [
     {
-      "text": "confirm Caroline's Meridian cash balance",
+      "text": "use both ISA allowances for the new tax year",
       "refs": [],
       "is_disposal": false,
       "amount": null
     },
     {
-      "text": "confirm timing of bridging-loan repayment",
+      "text": "make pension contributions into both SIPPs up to the appropriate level",
       "refs": [],
       "is_disposal": false,
       "amount": null
     },
     {
-      "text": "disinvest portion of Holloway joint GIA and rebalance",
+      "text": "add to the Holloway joint GIA",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "place the remaining balance into a new jointly-held investment account",
+      "refs": [],
+      "is_disposal": false,
+      "amount": null
+    },
+    {
+      "text": "disinvest a portion of the Holloway joint GIA and rebalance it",
       "refs": [],
       "is_disposal": true,
-      "amount": null
-    },
-    {
-      "text": "use ISA allowances for new tax year",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
-    },
-    {
-      "text": "make pension contributions to both SIPPs",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
-    },
-    {
-      "text": "add to Holloway joint GIA",
-      "refs": [],
-      "is_disposal": false,
-      "amount": null
-    },
-    {
-      "text": "place remaining balance into new jointly-held investment account",
-      "refs": [],
-      "is_disposal": false,
       "amount": null
     }
   ],
   "external_funds": [
     {
-      "label": "Completion payment",
+      "label": "Completion payment from business sale",
       "amount": 850000.0,
       "kind": "available",
-      "note": "Received in solicitor's client account"
+      "note": "Currently sitting in a solicitor's client account"
     },
     {
-      "label": "Deferred earnout",
+      "label": "Deferred earnout from business sale",
       "amount": 400000.0,
       "kind": "contingent",
-      "note": "Payable over two years if revenue targets met"
+      "note": "Payable over the next two years, contingent on performance"
     },
     {
       "label": "Bridging loan repayment",
       "amount": 200000.0,
       "kind": "committed",
-      "note": "Due shortly from completion proceeds"
+      "note": "Due shortly from the completion payment"
     }
   ],
   "disposal": true,
@@ -204,12 +192,6 @@
     "advice_ongoing": null
   },
   "gaps": [
-    {
-      "field": "M4-CASH-C value",
-      "reason": "balance not captured at snapshot; to be confirmed",
-      "section": "Background & Objectives",
-      "review": false
-    },
     {
       "field": "platform charge",
       "reason": "ongoing platform charge to confirm",
@@ -230,13 +212,15 @@
     }
   ],
   "objectives": [
-    "long-term growth with balanced-to-moderate risk appetite; no current income required; build tax-efficient base for future income replacement"
+    "long-term growth",
+    "balanced-to-moderate risk appetite",
+    "no income required"
   ],
   "amounts": [
     650000.0
   ],
   "guidance": [
-    "Pension contributions will be sized appropriately without breaching limits. Disregard closed Meridian account with zero balance. Monitor bridging loan repayment timing and Caroline's Meridian cash balance."
+    "James is concerned about over-contributing to pensions; contributions will be sized appropriately."
   ],
   "conflicts": [
     {

@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We understand that Robert and Jean Fletcher seek long-term growth with no immediate income requirements, and we will ensure the inheritance from Jean's mother is managed with care. Their portfolio includes Stocks & Shares ISAs and a General Investment Account, aligned with their moderate risk profile.
+You, Robert and Jean Fletcher, are focused on achieving long-term growth for your investments, with no immediate income requirements. Given your moderate risk profile, we will carefully consider your investment strategy, particularly in light of the recent inheritance following the passing of Jean's mother. Our aim is to ensure that your financial goals are met while handling this sensitive matter with the utmost care.
 
 The accounts covered by this report are as follows:
 
@@ -22,7 +22,13 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA (currently £38,000) in full. The proceeds from this disinvestment, along with the new money available (£120,000), should be used to top up both ISAs equally. The Stocks & Shares ISA (H-ISA-R) currently holds £70,000, and the Stocks & Shares ISA (H-ISA-JE) currently holds £66,000. After topping up both ISAs equally, the remaining balance should be transferred to a new jointly-held investment account.
+You should proceed with disinvesting the joint General Investment Account, which currently holds approximately £38,000. This action will allow you to access the funds for further investment. 
+
+Next, it is advisable to fund both Robert's and Jean's ISAs for the new tax year. The current value of Robert's Stocks & Shares ISA is £70,000, while Jean's Stocks & Shares ISA stands at £66,000. 
+
+Additionally, you should open a new jointly-held investment account for the balance of your investments. You have new money available to invest amounting to £120,000, which comes from the inheritance from Jean's mother. This new money is separate from the existing accounts and will provide you with further opportunities for growth. 
+
+By following these steps, you will effectively manage your investments and take advantage of the available funds.
 
 ## Tax Implications
 

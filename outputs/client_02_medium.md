@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-David and Susan Clarke, both retired and with no current income requirements, seek to maintain a balanced risk approach across their investments. Their objectives focus on preserving capital and ensuring alignment with their agreed risk profile, while capital gains arising from the disposal of the GIA and associated ongoing charges will be detailed in the report.
+David and Susan Clarke are both retired and have indicated that they do not require any income from their investments at this time. With a balanced risk profile of 5, they are looking to manage their assets across their Stocks & Shares ISAs and General Investment Account in a way that aligns with their long-term financial goals.
 
 The accounts covered by this report are as follows:
 
@@ -22,7 +22,9 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-We recommend disinvesting the joint GIA in full, using the proceeds to top up both ISAs equally. The Stocks & Shares ISA (H-ISA-D) currently holds £61,000, while the Stocks & Shares ISA (H-ISA-S) currently holds £58,500. To achieve equal top-ups, the amount allocated to each ISA should be based on the proportion of their current values relative to the total ISA holdings. We also advise considering the capital gains position arising from the disposal of the GIA, as this may impact tax considerations.
+You should proceed with disinvesting the joint General Investment Account (H-GIA-J) in full, which currently holds approximately £45,000. This action will provide you with the necessary funds to enhance your investment strategy.
+
+Following the disinvestment, we recommend that you top up both of your Stocks & Shares ISAs equally. Your current balance in the Stocks & Shares ISA (H-ISA-D) is £61,000, and in the other Stocks & Shares ISA (H-ISA-S), it is £58,500. By equally distributing the funds from the disinvestment and any new money you may have, you can optimise your tax-efficient savings and investment growth potential.
 
 ## Tax Implications
 

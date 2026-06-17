@@ -1,6 +1,6 @@
 {
-  "client": "David Clarke and Susan Clarke",
-  "risk_profile": "balanced",
+  "client": "David and Susan Clarke",
+  "risk_profile": "5 (balanced)",
   "accounts": [
     {
       "account_id": "H-ISA-D",
@@ -54,12 +54,6 @@
       "refs": [],
       "is_disposal": false,
       "amount": null
-    },
-    {
-      "text": "consider capital gains position from GIA disposal",
-      "refs": [],
-      "is_disposal": true,
-      "amount": null
     }
   ],
   "external_funds": [],
@@ -73,28 +67,28 @@
     {
       "field": "platform charge",
       "reason": "ongoing platform charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     },
     {
       "field": "advice charge",
       "reason": "ongoing advice charge to confirm",
-      "section": "Fees & Charges"
+      "section": "Fees & Charges",
+      "review": false
     },
     {
       "field": "capital gains tax",
       "reason": "liability on the disposal to be confirmed by adviser",
-      "section": "Tax Implications"
+      "section": "Tax Implications",
+      "review": false
     }
   ],
   "objectives": [
     "both retired",
-    "no income required",
-    "maintain balanced risk approach"
+    "no income required"
   ],
   "amounts": [],
-  "guidance": [
-    "Capital gains from GIA disposal and ongoing charges to be detailed in report. No income requirements currently."
-  ],
+  "guidance": [],
   "conflicts": [
     {
       "field": "H-GIA-J.value",

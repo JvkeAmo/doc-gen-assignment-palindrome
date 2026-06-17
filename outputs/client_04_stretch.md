@@ -2,13 +2,13 @@
 
 ## Introduction
 
-Further to our recent discussions, we are writing to set out our advice in relation to your Stocks & Shares ISA, your jointly-held General Investment Account, your SIPP, your jointly-held Offshore Investment Bond and your Cash Account. This advice is based on the information currently available to us.
+Further to our recent discussions, we are writing to set out our advice in relation to your Stocks & Shares ISA, your jointly-held General Investment Account, your SIPP and your jointly-held Offshore Investment Bond. This advice is based on the information currently available to us.
 
 This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-We aim to support James and Caroline Whitmore in achieving long-term growth through a balanced-to-moderate risk approach, with no immediate income requirements and a focus on establishing a tax-efficient foundation for future income needs. We will ensure pension contributions align with limits, while disregarding the closed Meridian account and closely monitoring bridging loan repayment timelines alongside Caroline’s Meridian cash balance to safeguard their financial position.
+James and Caroline Whitmore are focused on achieving long-term growth while maintaining a balanced-to-moderate risk profile. They do not require any immediate income from their investments, allowing for a more strategic approach to their financial planning. We understand James's concerns regarding pension contributions and will ensure that any contributions are sized appropriately to avoid over-contributing.
 
 The accounts covered by this report are as follows:
 
@@ -19,16 +19,26 @@ The accounts covered by this report are as follows:
 | B4-SIPP-J | James Whitmore | SIPP | £610,000 |
 | B4-GIA-J | Joint | General Investment Account | £95,000 |
 | M4-BOND-J | Joint | Offshore Investment Bond | £180,000 |
-| M4-CASH-J | James Whitmore | Cash Account | £30,000 |
 | H4-ISA-C | Caroline Whitmore | Stocks & Shares ISA | £82,000 |
 | B4-SIPP-C | Caroline Whitmore | SIPP | £430,000 |
-| M4-CASH-C | Caroline Whitmore | Cash Account | [FLAG: M4-CASH-C value — balance not captured at snapshot; to be confirmed] |
 
 ## Recommendations
 
 We recommend the following:
 
-We recommend confirming Caroline's Meridian cash balance to ensure accuracy before proceeding. Confirm the timing of the bridging-loan repayment, as this will impact cash flow planning. Disinvest a portion of the Holloway joint GIA (£255,000 approx.) and rebalance the portfolio to align with current objectives. Use the available ISA allowances for the new tax year to invest in the Stocks & Shares ISAs (£85,000 and £82,000). Make pension contributions to both SIPPs (£610,000 and £430,000) to optimise tax efficiency. Add the proceeds from the disinvestment to the Holloway joint GIA. Place the remaining balance into a new jointly-held investment account. The new money available to invest now is £650,000, sourced from the completion payment (£850,000) and the deferred earnout (£400,000). The bridging-loan repayment of £200,000 is committed and should be factored into liquidity management. Ensure the cash balance in the M4-CASH-C account is confirmed, as its value is not currently captured.
+To optimise your financial position, we recommend several actions that will utilise both your existing assets and the new funds available from the business sale.
+
+Firstly, you should use both your ISA allowances for the new tax year. This will allow you to shelter more of your investments from tax, maximising your returns over time. You currently have Stocks & Shares ISAs with values of £85,000 and £82,000, which can be supplemented with new contributions.
+
+Next, we advise making pension contributions into both of your SIPPs. Your current SIPP values are £610,000 and £430,000. Contributing to these accounts will not only enhance your retirement savings but also provide potential tax benefits.
+
+Additionally, you should consider adding to the Holloway joint General Investment Account (GIA), which currently stands at approximately £255,000. This will help diversify your investment portfolio and take advantage of market opportunities.
+
+With the remaining balance from your new funds, you should establish a new jointly-held investment account. This will provide you with further flexibility in managing your investments and accessing funds as needed.
+
+Finally, it is prudent to disinvest a portion of the Holloway joint GIA and rebalance it. This action will help ensure that your investment strategy remains aligned with your financial goals and risk tolerance.
+
+In summary, by implementing these recommendations, you will effectively utilise your available resources and enhance your overall investment strategy.
 
 ## Tax Implications
 
@@ -39,6 +49,13 @@ The recommended disposal may give rise to a capital gains tax liability, which w
 ## Fees & Charges
 
 The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0.5%. [FLAG: platform charge — ongoing platform charge to confirm] [FLAG: advice charge — ongoing advice charge to confirm]
+
+## Next Steps
+
+Before we finalise, there are some outstanding items to confirm:
+
+- You also hold a Cash Account (M4-CASH-J, £30,000) that is not covered by this report. Please confirm whether it should be included or reviewed separately.
+- You also hold a Cash Account (M4-CASH-C, balance to be confirmed) that is not covered by this report. Please confirm whether it should be included or reviewed separately.
 
 ## Conclusion
 

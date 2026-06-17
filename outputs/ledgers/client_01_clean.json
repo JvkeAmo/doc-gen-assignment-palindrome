@@ -1,6 +1,6 @@
 {
   "client": "Margaret Hughes",
-  "risk_profile": "moderate",
+  "risk_profile": "4 (moderate)",
   "accounts": [
     {
       "account_id": "H-ISA-01",
@@ -31,7 +31,7 @@
   ],
   "actions": [
     {
-      "text": "transfer £20,000 from H-CASH-01 to H-ISA-01",
+      "text": "move £20,000 from cash account to Stocks & Shares ISA",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -60,14 +60,11 @@
   ],
   "objectives": [
     "retired",
-    "no income required",
-    "comfortable with moderate risk"
+    "no income required"
   ],
   "amounts": [
     20000.0
   ],
-  "guidance": [
-    "Client mentioned potential future discussion on gifting to grandchildren, but no action to be taken now."
-  ],
+  "guidance": [],
   "conflicts": []
 }
