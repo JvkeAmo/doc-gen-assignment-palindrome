@@ -16,7 +16,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from agent_pipeline.extract import extract_facts, parse_db
-from agent_pipeline.llm import build_client, model_name
+from agent_pipeline.llm import build_client, extract_model_name, model_name
 from agent_pipeline.models import ClientLedger
 from agent_pipeline.ocr import read_image_text
 from agent_pipeline.reconcile import reconcile
@@ -43,7 +43,7 @@ def read_sources(grouped: dict[Role, list[Path]], image_text: dict[str, str]) ->
     return out
 
 
-def build_ledger(client_dir: Path, client, model, recorder: RunRecorder) -> ClientLedger:
+def build_ledger(client_dir: Path, client, extract_model, recorder: RunRecorder) -> ClientLedger:
     """Triage → OCR → extract (per source) → reconcile → ClientLedger."""
     with recorder.stage("triage"):
         grouped = triage_folder(client_dir)
@@ -61,7 +61,7 @@ def build_ledger(client_dir: Path, client, model, recorder: RunRecorder) -> Clie
     accounts, _snapshot = parse_db(db_text) if db_text else ([], None)
 
     with recorder.stage("extract"):
-        facts = extract_facts(client, model, accounts, sources, recorder)
+        facts = extract_facts(client, extract_model, accounts, sources, recorder)
     with recorder.stage("reconcile"):
         ledger = reconcile(accounts, facts)
     return ledger
@@ -122,11 +122,12 @@ def main() -> None:
 
     load_dotenv()
     client = build_client()
-    model = model_name()
-    recorder = RunRecorder(args.client, model)
+    model = model_name()  # generation (prose)
+    extract_model = extract_model_name()  # extraction (precision)
+    recorder = RunRecorder(args.client, f"{extract_model} / {model}")
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
-    ledger = build_ledger(args.data_dir / args.client, client, model, recorder)
+    ledger = build_ledger(args.data_dir / args.client, client, extract_model, recorder)
     with recorder.stage("generate"):
         report = generate_report(config, ledger, client, model, recorder)
     with recorder.stage("verify"):

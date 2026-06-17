@@ -15,8 +15,9 @@ from datetime import datetime
 from pathlib import Path
 
 from openai import OpenAI
+from pydantic import BaseModel
 
-from agent_pipeline.llm import complete
+from agent_pipeline.llm import complete, parse_into
 from agent_pipeline.models import ClientLedger
 
 
@@ -110,3 +111,21 @@ def timed_complete(
     if recorder is not None:
         recorder.record_llm(name, prompt, out, time.perf_counter() - start, kwargs.get("system"))
     return out
+
+
+def timed_parse(
+    recorder: RunRecorder | None,
+    name: str,
+    client: OpenAI,
+    model: str,
+    prompt: str,
+    response_format: type[BaseModel],
+    **kwargs,
+):
+    """Like ``timed_complete`` but for a structured-output call; returns the parsed object."""
+    start = time.perf_counter()
+    parsed = parse_into(client, model, prompt, response_format, **kwargs)
+    if recorder is not None:
+        text = parsed.model_dump_json() if parsed is not None else ""
+        recorder.record_llm(name, prompt, text, time.perf_counter() - start, kwargs.get("system"))
+    return parsed

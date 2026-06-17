@@ -81,9 +81,29 @@ Why: a small model drops fewer fields on a tight, single-purpose JSON than on a 
 and the calls are independent (parallelisable later). The shared db anchor preserves cross-source
 knowledge, and the expensive cross-referencing (recency, dedupe) happens deterministically in
 reconcile anyway. This split immediately surfaced two bugs the single call had hidden: a source
-returning `guidance` as a string (now coerced scalar→list) silently emptied a whole extraction, and
+returning a list field in the wrong shape (since solved structurally by structured outputs) silently
+emptied a whole extraction, and
 `investment_amounts` was inferring the stale db value (now restricted to figures written explicitly in
-the document). Trade-off: ~3 sequential calls instead of 1 (extraction ~75–95s on `qwen3:8b`).
+the document). Trade-off: ~3 calls instead of 1 (they run concurrently, so wall-clock is ~one call).
+
+## Structured outputs + per-source schemas; a stronger model for extraction
+
+Extraction uses OpenAI **structured outputs** (`client.chat.completions.parse`) against a Pydantic
+schema, so the parsed result is guaranteed to match the shape — no tolerant JSON parsing, no
+scalar/dict coercion. Crucially each source has its OWN schema (`RequestFacts`, `MeetingFacts`,
+`StatementFacts`, `ExploreFacts`): a call can only return fields relevant to that source, so fields
+don't bleed across calls, and the per-field *descriptions* carry the extraction rules (scope =
+covered-only, no computed live values, exclude non-actioned aspirations) — the schema is the contract,
+which let the prose prompts slim right down.
+
+Extraction runs on a **stronger model than generation** (`EXTRACT_MODEL=gpt-4o`, `LLM_MODEL=gpt-4o-mini`).
+We found `gpt-4o-mini` unreliable on the scope-exclusion judgment (it pulled uncovered cash accounts
+into scope, and no prompt/schema wording fixed it) whereas `gpt-4o` gets it right; generation prose is
+easy enough for the mini model. Precision where it matters, cheap prose elsewhere — a few cents per run.
+
+> A note on what structured outputs do and don't do: they guarantee the *shape* is valid, not that the
+> *content* is correct. A wrong-but-well-typed scope still passes the schema, so `verify.py` and the
+> golden ledgers (which check semantics) remain the real correctness guarantees.
 
 ## Why the work sits in `src/`, not only the config
 

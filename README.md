@@ -15,9 +15,12 @@ cp .env.example .env          # add your OpenAI API key (OPENAI_API_KEY=...)
 uv sync                       # add --extra dev for the tests
 ```
 
-The pipeline uses **OpenAI** (`gpt-4o-mini` by default for both text and the statement-image vision
-call). The model and endpoint are env-overridable (`LLM_MODEL`, `OCR_MODEL`, `LLM_BASE_URL`); see
-`.env.example`. The unit tests and `evaluate` are deterministic and need no API key.
+The pipeline uses **OpenAI**: `gpt-4o` for extraction (precision matters — scope and figures) and
+`gpt-4o-mini` for generation and the statement-image vision call (cheap prose). Extraction uses
+OpenAI **structured outputs** (a per-source Pydantic schema per call), so parsed facts are
+schema-guaranteed. All models are env-overridable (`EXTRACT_MODEL`, `LLM_MODEL`, `OCR_MODEL`,
+`LLM_BASE_URL`); see `.env.example`. The unit tests and `evaluate` (without `--judge`) are
+deterministic and need no API key.
 
 ## Run
 

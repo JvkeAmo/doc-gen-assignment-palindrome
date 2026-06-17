@@ -12,17 +12,24 @@ from agent_pipeline.verify import FCA_LINE, RISK_WARNING, check_report, critique
 
 
 class _StubClient:
-    """Minimal stand-in for the OpenAI client: returns queued responses in order."""
+    """Minimal stand-in for the OpenAI client: returns queued responses in order.
+
+    ``create`` serves plain-text completions (generation); ``parse`` serves structured-output
+    extraction, validating the queued JSON string into the requested response_format.
+    """
 
     def __init__(self, responses):
         outs = list(responses)
 
+        def _wrap(message):
+            return type("R", (), {"choices": [type("C", (), {"message": message})]})
+
         class _Completions:
             def create(self, **_kwargs):
-                content = outs.pop(0)
-                message = type("M", (), {"content": content})
-                choice = type("C", (), {"message": message})
-                return type("R", (), {"choices": [choice]})
+                return _wrap(type("M", (), {"content": outs.pop(0)}))
+
+            def parse(self, *, response_format, **_kwargs):
+                return _wrap(type("M", (), {"parsed": response_format.model_validate_json(outs.pop(0))}))
 
         self.chat = type("Chat", (), {"completions": _Completions()})()
 
@@ -76,25 +83,6 @@ def test_verify_catches_missing_verbatim_and_unsourced_figure():
     assert any("Risk warning" in p for p in problems)
     assert any("99000" in p for p in problems)  # invented figure flagged
     assert not any("61000" in p for p in problems)  # sourced figure is fine
-
-
-def test_extracted_facts_coerces_scalars_to_lists():
-    # Models sometimes return a bare string where a list is expected; it must not blow up.
-    facts = ExtractedFacts.model_validate(
-        {"guidance": "handle sensitively", "actions": "do one thing", "live_values": {"account_id": "X", "value": 1}}
-    )
-    assert facts.guidance == ["handle sensitively"]
-    assert facts.actions == ["do one thing"]
-    assert len(facts.live_values) == 1 and facts.live_values[0].account_id == "X"
-    # a model returning a list field as a dict must not fail the whole call: {id: id} -> [id]...
-    dicty = ExtractedFacts.model_validate(
-        {"scope_account_ids": {"H-ISA-01": "H-ISA-01"}, "investment_amounts": [20000]}
-    )
-    assert dicty.scope_account_ids == ["H-ISA-01"]
-    assert dicty.investment_amounts == [20000.0]
-    # ...and ids grouped under labels are flattened to the ids
-    grouped = ExtractedFacts.model_validate({"scope_account_ids": {"ISAs": ["A", "B"], "GIA": ["C"]}})
-    assert grouped.scope_account_ids == ["A", "B", "C"]
 
 
 def test_merge_facts_unions_lists_and_keeps_first_scalar():

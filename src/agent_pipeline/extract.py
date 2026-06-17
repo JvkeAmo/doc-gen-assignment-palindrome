@@ -7,10 +7,11 @@ By design:
     note (+ internal notes), and any statement image are extracted separately, each anchored by the
     db account digest so entity-matching survives. The partial results are then merged.
 
-Splitting by source keeps each call small and reliable (a small model drops fewer fields on a tight
-4-key JSON than a sprawling one), while the shared db anchor preserves the cross-source knowledge.
-Extraction does NOT resolve conflicts — it only records what each source says; the db value and any
-"live" value both survive, to be reconciled later.
+Each prose call uses OpenAI **structured outputs** against its OWN per-source schema (see the schema
+classes below), so the model can only return fields relevant to that source — no field bleed across
+calls, and the shape is schema-guaranteed (no tolerant parsing or coercion needed). The shared db
+anchor preserves cross-source knowledge. Extraction does NOT resolve conflicts — it only records what
+each source says; the db value and any "live" value both survive, to be reconciled later.
 """
 
 from __future__ import annotations
@@ -18,32 +19,46 @@ from __future__ import annotations
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
+from typing import Literal
 
 from openai import OpenAI
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field
 
-from agent_pipeline.llm import loads_json
 from agent_pipeline.models import Account
-from agent_pipeline.runlog import RunRecorder, timed_complete
+from agent_pipeline.runlog import RunRecorder, timed_parse
 from agent_pipeline.triage import Role
 
 
-# --- LLM extraction output schema ------------------------------------------------------------
+# --- Extraction schemas ----------------------------------------------------------------------
+#
+# Each prose source is read with OpenAI structured outputs (llm.parse_into) against its OWN schema,
+# so a call can only return fields relevant to that source — no field bleed across calls, and no
+# tolerant parsing/coercion needed (the shape is schema-guaranteed). The per-field descriptions
+# carry the extraction RULES: the schema is the contract. Partials are merged into ExtractedFacts.
 
 class LiveValue(BaseModel):
     """An account value observed in the notes/image (often fresher than the db snapshot)."""
 
-    account_id: str | None = None  # db id when identifiable
-    description: str | None = None  # e.g. "joint GIA" when no id was given
+    account_id: str | None = Field(None, description="db account_id when identifiable")
+    description: str | None = Field(None, description='e.g. "joint GIA" when no id was given')
     value: float | None = None
-    as_of: str | None = None  # ISO date the figure was observed (usually the meeting date)
+    as_of: str | None = Field(None, description="ISO date the figure was observed (usually the meeting date)")
     note: str | None = None
 
 
 class ExternalFundLite(BaseModel):
+    """Money not yet an account (an inheritance, business-sale proceeds)."""
+
     label: str
     amount: float | None = None
-    kind: str = "available"  # "available" | "contingent" | "committed"
+    kind: Literal["available", "contingent", "committed"] = Field(
+        "available",
+        description=(
+            "available = an inflow investable now (inheritance, completion payment received); "
+            "contingent = a future/uncertain inflow not yet received (an earnout); "
+            "committed = an amount already earmarked to be paid out (a loan repayment)"
+        ),
+    )
     note: str | None = None
 
 
@@ -58,47 +73,110 @@ class DiscoveredAccount(BaseModel):
     note: str | None = None
 
 
+_LIVE_VALUE_RULE = (
+    "account values observed that may differ from the db. Record ONLY a balance explicitly stated as "
+    "the current figure — never compute or project one (e.g. a balance after a planned transfer or "
+    "sale). Match account_id to the db where possible."
+)
+
+
+class RequestFacts(BaseModel):
+    """Facts from the report-requirement summary (the adviser's instruction sheet)."""
+
+    client_label: str | None = Field(None, description="the client(s) named, e.g. 'David & Susan Clarke'")
+    risk_profile: str | None = Field(None, description="the agreed risk profile string")
+    selling: bool | None = Field(None, description="does the report involve selling/disposing investments?")
+    initial_charge: str | None = Field(None, description='the initial charge string, e.g. "0%"')
+    scope_account_ids: list[str] = Field(
+        default_factory=list,
+        description=(
+            "db account_ids the report covers, per the 'Accounts covered' line. Include ONLY accounts "
+            "named there; exclude any account the client merely holds that is not named as covered "
+            "(e.g. an unrelated or source-of-funds cash account)."
+        ),
+    )
+    investment_amounts: list[float] = Field(
+        default_factory=list,
+        description=(
+            "monetary amounts written explicitly as figures in THIS document (e.g. 'GBP 20,000' -> "
+            "20000). If an amount is only described in words ('full value of the GIA'), leave empty. "
+            "Never infer numbers from the account database."
+        ),
+    )
+
+
+class MeetingFacts(BaseModel):
+    """Facts from the adviser's meeting note (+ internal data-source notes)."""
+
+    client_label: str | None = None
+    objectives: list[str] = Field(
+        default_factory=list,
+        description=(
+            "short HIGH-LEVEL circumstance/objective phrases (e.g. 'both retired', 'no income "
+            "required'). No amounts. Exclude future aspirations the client is NOT acting on in this "
+            "report (gifts, donations, or purchases mentioned only in passing)."
+        ),
+    )
+    actions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "short phrases of what the client should do WITH THEIR INVESTMENTS (e.g. 'disinvest the "
+            "joint GIA in full'). Exclude the adviser's own admin steps (e.g. 'prepare the report')."
+        ),
+    )
+    live_values: list[LiveValue] = Field(default_factory=list, description=_LIVE_VALUE_RULE)
+    external_funds: list[ExternalFundLite] = Field(default_factory=list)
+    guidance: list[str] = Field(
+        default_factory=list,
+        description=(
+            "genuinely sensitive circumstances to handle tactfully (e.g. an inheritance following a "
+            "death). Do NOT include future aspirations the client is not acting on (gifts, donations, "
+            "purchases) — those are distractions, not advice guidance."
+        ),
+    )
+
+
+class StatementFacts(BaseModel):
+    """Facts from an account statement (often OCR'd from an image)."""
+
+    live_values: list[LiveValue] = Field(
+        default_factory=list,
+        description="one per account row in the statement; as_of is the 'valued on' date. " + _LIVE_VALUE_RULE,
+    )
+
+
+class ExploreFacts(BaseModel):
+    """Facts from an UNRECOGNISED document: discover what's novel, flag what can't be placed."""
+
+    live_values: list[LiveValue] = Field(
+        default_factory=list, description="values this document gives for KNOWN db accounts"
+    )
+    discovered_accounts: list[DiscoveredAccount] = Field(
+        default_factory=list, description="accounts this document reveals that are NOT in the db"
+    )
+    actions: list[str] = Field(default_factory=list)
+    guidance: list[str] = Field(default_factory=list)
+    unmapped: list[str] = Field(
+        default_factory=list, description="material found but not categorisable, for a human to review"
+    )
+
+
 class ExtractedFacts(BaseModel):
+    """The merged result of all per-source extractions (every field union'd together)."""
+
     client_label: str | None = None
     risk_profile: str | None = None
-    selling: bool | None = None  # report_request "Selling existing investments?"
+    selling: bool | None = None
     initial_charge: str | None = None
     scope_account_ids: list[str] = Field(default_factory=list)
-    objectives: list[str] = Field(default_factory=list)  # high-level circumstances, no amounts
-    investment_amounts: list[float] = Field(default_factory=list)  # headline figures stated in sources
+    objectives: list[str] = Field(default_factory=list)
+    investment_amounts: list[float] = Field(default_factory=list)
     actions: list[str] = Field(default_factory=list)
     live_values: list[LiveValue] = Field(default_factory=list)
     external_funds: list[ExternalFundLite] = Field(default_factory=list)
     guidance: list[str] = Field(default_factory=list)
-    # Populated only by the exploratory pass over unrecognised documents:
     discovered_accounts: list[DiscoveredAccount] = Field(default_factory=list)
-    unmapped: list[str] = Field(default_factory=list)  # material found but not categorisable
-
-    @field_validator(
-        "scope_account_ids", "objectives", "investment_amounts", "actions", "guidance", "unmapped",
-        mode="before",
-    )
-    @classmethod
-    def _coerce_scalar_to_list(cls, v):
-        # Models sometimes return a bare string/number, or a dict, where a list is expected. For a
-        # dict, flatten its values — that handles both {"H-ISA-01": "H-ISA-01"} and the model grouping
-        # ids under labels, e.g. {"ISAs": ["A", "B"]}. This keeps one malformed field from failing the
-        # whole extraction call.
-        if v is None:
-            return []
-        if isinstance(v, dict):
-            items: list = []
-            for value in v.values():
-                items.extend(value if isinstance(value, list) else [value])
-            return items
-        return v if isinstance(v, list) else [v]
-
-    @field_validator("live_values", "external_funds", "discovered_accounts", mode="before")
-    @classmethod
-    def _coerce_dict_to_list(cls, v):
-        if v is None:
-            return []
-        return v if isinstance(v, list) else [v]
+    unmapped: list[str] = Field(default_factory=list)
 
 
 # --- deterministic db parse ------------------------------------------------------------------
@@ -142,9 +220,9 @@ def parse_db(text: str) -> tuple[list[Account], date | None]:
 # --- LLM extraction of the prose sources -----------------------------------------------------
 
 _EXTRACT_SYSTEM = (
-    "You extract structured facts from UK financial-adviser documents. "
-    "Return ONLY a JSON object. Never invent figures: if a value is not stated, use null. "
-    "Do not include capital gains tax amounts or fee rates (a person finalises those)."
+    "You extract structured facts from UK financial-adviser documents into the given schema. "
+    "Never invent figures: if a value is not stated, leave it null/empty. Do not include capital "
+    "gains tax amounts or fee rates (a person finalises those)."
 )
 
 
@@ -162,86 +240,48 @@ def _anchor(accounts: list[Account]) -> str:
 
 def _request_prompt(accounts: list[Account], text: str) -> str:
     return (
-        "You are reading a report-requirement summary (an adviser's instruction sheet).\n\n"
-        f"{_anchor(accounts)}\n\n=== report_request ===\n{text}\n\n"
-        "Return a JSON object with exactly these keys:\n"
-        '  "client_label": string naming the client(s), or null;\n'
-        '  "risk_profile": the agreed risk profile string, or null;\n'
-        '  "selling": true/false/null — does the report involve selling/disposing investments;\n'
-        '  "initial_charge": the initial charge string (e.g. "0%"), or null;\n'
-        '  "scope_account_ids": list of db account_ids the report covers — only the accounts it '
-        "explicitly covers, not every account the client holds;\n"
-        '  "investment_amounts": monetary amounts written explicitly as figures in THIS document '
-        '(e.g. "GBP 20,000" -> 20000). If an amount is only described in words (e.g. "full value of '
-        'the GIA"), return []. Do NOT infer numbers from the account database.'
+        "Read this report-requirement summary (an adviser's instruction sheet) and extract its facts.\n\n"
+        f"{_anchor(accounts)}\n\n=== report_request ===\n{text}"
     )
 
 
 def _meeting_prompt(accounts: list[Account], meeting: str, guidance: str) -> str:
     extra = f"\n=== internal_notes ===\n{guidance}\n" if guidance else ""
     return (
-        "You are reading an adviser's free-form meeting note (plus internal data-source notes).\n\n"
-        f"{_anchor(accounts)}\n\n=== meeting_notes ===\n{meeting}\n{extra}\n"
-        "Return a JSON object with exactly these keys:\n"
-        '  "client_label": string naming the client(s), or null;\n'
-        '  "objectives": short HIGH-LEVEL circumstance/objective phrases (e.g. "both retired", '
-        '"no income required"). Do NOT include amounts. Exclude future aspirations the client is NOT '
-        "acting on in this report (e.g. gifts, donations, or purchases mentioned only in passing);\n"
-        '  "actions": short phrases of what the client should do WITH THEIR INVESTMENTS (e.g. '
-        '"disinvest the joint GIA in full", "top up both ISAs equally"). Exclude the adviser\'s own '
-        'admin steps (e.g. "prepare the report", "confirm the charges");\n'
-        '  "live_values": list of {account_id, description, value, as_of, note} for any account '
-        "value observed live in the meeting that may differ from the db. Use the meeting date as "
-        "as_of. Record ONLY a balance explicitly stated as the current figure — never compute or "
-        "project one (e.g. a balance after a planned transfer or sale);\n"
-        '  "external_funds": list of {label, amount, kind, note} for money not yet an account '
-        "(inheritance, business-sale proceeds). kind is one of: \"available\" (an inflow investable "
-        'now, e.g. an inheritance or a completion payment received); "contingent" (a future/uncertain '
-        'inflow not yet received, e.g. an earnout); "committed" (an amount already earmarked to be '
-        'paid out, e.g. a loan repayment);\n'
-        '  "guidance": short notes from the internal "## This client" section, or anything to handle '
-        "sensitively (e.g. an inheritance following a death)."
+        "Read this adviser's free-form meeting note (plus internal data-source notes) and extract its "
+        f"facts.\n\n{_anchor(accounts)}\n\n=== meeting_notes ===\n{meeting}\n{extra}"
     )
 
 
 def _statement_prompt(accounts: list[Account], text: str) -> str:
     return (
-        "You are reading an account statement (possibly OCR'd from an image).\n\n"
-        f"{_anchor(accounts)}\n\n=== statement ===\n{text}\n\n"
-        "Return a JSON object with exactly this key:\n"
-        '  "live_values": list of {account_id, description, value, as_of, note}, one per account row '
-        'in the statement. "as_of" is the statement / "valued on" date. Match account_id to the '
-        "database where possible; only include rows where a value is given."
+        "Read this account statement (possibly OCR'd from an image) and extract a live value per "
+        f"account row.\n\n{_anchor(accounts)}\n\n=== statement ===\n{text}"
     )
 
 
 def _explore_prompt(accounts: list[Account], text: str) -> str:
-    """Prompt for an unrecognised document: discover novel facts, flag what can't be categorised."""
     return (
-        "You are reading an UNRECOGNISED client document. We do not know its format, so read it "
-        "carefully and extract anything material for an investment advice report.\n\n"
-        f"{_anchor(accounts)}\n\n=== unknown_document ===\n{text}\n\n"
-        "Return a JSON object with exactly these keys:\n"
-        '  "live_values": list of {account_id, description, value, as_of, note} for a value this '
-        "document gives for one of the KNOWN accounts above (match account_id where possible);\n"
-        '  "discovered_accounts": list of {account_id, type, owner, value, as_of, note} for any '
-        "account this document reveals that is NOT in the database above;\n"
-        '  "actions": short phrases of what the client should do with their investments;\n'
-        '  "guidance": short notes an adviser should handle sensitively;\n'
-        '  "unmapped": list of short strings for any material you found but could not place into the '
-        "keys above, so a human can review it. Never invent figures."
+        "Read this UNRECOGNISED client document. We do not know its format, so read it carefully and "
+        "extract anything material for an investment advice report, flagging what you cannot place.\n\n"
+        f"{_anchor(accounts)}\n\n=== unknown_document ===\n{text}"
     )
 
 
 def _extract_source(
-    client: OpenAI, model: str, prompt: str, name: str, recorder: RunRecorder | None
+    client: OpenAI,
+    model: str,
+    prompt: str,
+    schema: type[BaseModel],
+    name: str,
+    recorder: RunRecorder | None,
 ) -> ExtractedFacts:
-    """Run one focused per-source extraction call and parse it into ExtractedFacts."""
-    raw = timed_complete(recorder, name, client, model, prompt, system=_EXTRACT_SYSTEM, as_json=True)
+    """Run one focused per-source extraction (structured output) and lift it into ExtractedFacts."""
     try:
-        return ExtractedFacts.model_validate(loads_json(raw))
-    except (json.JSONDecodeError, ValidationError):
-        return ExtractedFacts()  # fail soft: other sources + the db still yield a report
+        facts = timed_parse(recorder, name, client, model, prompt, schema, system=_EXTRACT_SYSTEM)
+        return ExtractedFacts(**facts.model_dump()) if facts is not None else ExtractedFacts()
+    except Exception:  # noqa: BLE001 - fail soft: other sources + the db still yield a report
+        return ExtractedFacts()
 
 
 def merge_facts(parts: list[ExtractedFacts]) -> ExtractedFacts:
@@ -281,27 +321,27 @@ def extract_facts(
     """
     guidance = sources.get(Role.GUIDANCE, "")
 
-    # (telemetry_name, prompt) in priority order — this order decides who wins a first-non-null
+    # (telemetry_name, prompt, schema) in priority order — this order decides who wins a first-non-null
     # scalar in merge_facts, so it must not depend on completion order.
-    tasks: list[tuple[str, str]] = []
+    tasks: list[tuple[str, str, type[BaseModel]]] = []
     if Role.REPORT_REQUEST in sources:
-        tasks.append(("extract:report_request", _request_prompt(accounts, sources[Role.REPORT_REQUEST])))
+        tasks.append(("extract:report_request", _request_prompt(accounts, sources[Role.REPORT_REQUEST]), RequestFacts))
     if Role.MEETING_NOTES in sources:
-        tasks.append(("extract:meeting_notes", _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance)))
+        tasks.append(("extract:meeting_notes", _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance), MeetingFacts))
     if Role.IMAGE in sources:
-        tasks.append(("extract:statement", _statement_prompt(accounts, sources[Role.IMAGE])))
+        tasks.append(("extract:statement", _statement_prompt(accounts, sources[Role.IMAGE]), StatementFacts))
     # Exploratory pass over unrecognised documents — only present when an unknown file exists, so the
     # normal case pays nothing. It can discover accounts not in the db and flag uncategorised material.
     if Role.UNKNOWN in sources:
-        tasks.append(("extract:unknown", _explore_prompt(accounts, sources[Role.UNKNOWN])))
+        tasks.append(("extract:unknown", _explore_prompt(accounts, sources[Role.UNKNOWN]), ExploreFacts))
     if not tasks:
         return ExtractedFacts()
 
     # Run the independent calls concurrently. pool.map keeps results in task order, so the
     # first-non-null merge stays deterministic regardless of which call returns first.
-    def run(task: tuple[str, str]) -> ExtractedFacts:
-        name, prompt = task
-        return _extract_source(client, model, prompt, name, recorder)
+    def run(task: tuple[str, str, type[BaseModel]]) -> ExtractedFacts:
+        name, prompt, schema = task
+        return _extract_source(client, model, prompt, schema, name, recorder)
 
     with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
         parts = list(pool.map(run, tasks))

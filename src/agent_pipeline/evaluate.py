@@ -19,6 +19,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from agent_pipeline.golden import compare_ledger
 from agent_pipeline.models import ClientLedger
 from agent_pipeline.verify import check_report
@@ -94,6 +96,7 @@ def main() -> None:
     parser.add_argument("--golden-dir", type=Path, default=Path("eval/golden"))
     parser.add_argument("--judge", action="store_true", help="also run the LLM-judge quality scores (slow)")
     args = parser.parse_args()
+    load_dotenv()  # so --judge can read the API key from .env
     sys.exit(evaluate(args.output_dir, args.ledger_dir, args.golden_dir, args.judge))
 
 

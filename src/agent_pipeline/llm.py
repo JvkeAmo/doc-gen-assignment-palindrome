@@ -1,9 +1,10 @@
 """LLM client factory and small completion helpers (OpenAI).
 
-The model and endpoint are env-overridable, so you can swap models (e.g. gpt-4o vs gpt-4o-mini) or
-point at an OpenAI-compatible endpoint without code changes:
+Two models, both env-overridable: a stronger one for extraction (precision matters — getting scope
+and figures right) and a cheaper one for generation (prose):
 
-    LLM_MODEL      default gpt-4o-mini
+    EXTRACT_MODEL  default gpt-4o        (extraction)
+    LLM_MODEL      default gpt-4o-mini   (generation)
     LLM_BASE_URL   default https://api.openai.com/v1
     API key        from OPENAI_API_KEY, OPENAI_KEY, or LLM_API_KEY
 """
@@ -12,11 +13,16 @@ from __future__ import annotations
 
 import json
 import os
+from typing import TypeVar
 
 from openai import OpenAI
+from pydantic import BaseModel
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_EXTRACT_MODEL = "gpt-4o"
+
+_Model = TypeVar("_Model", bound=BaseModel)
 
 
 def build_client() -> OpenAI:
@@ -34,8 +40,37 @@ def build_client() -> OpenAI:
 
 
 def model_name() -> str:
-    """The model id to use (env-overridable)."""
+    """The generation model id (env-overridable)."""
     return os.environ.get("LLM_MODEL", DEFAULT_MODEL)
+
+
+def extract_model_name() -> str:
+    """The extraction model id — a stronger model than generation, since precision matters here."""
+    return os.environ.get("EXTRACT_MODEL", DEFAULT_EXTRACT_MODEL)
+
+
+def parse_into(
+    client: OpenAI,
+    model: str,
+    prompt: str,
+    response_format: type[_Model],
+    *,
+    system: str | None = None,
+    temperature: float = 0.0,
+) -> _Model | None:
+    """Structured-output completion: return the response parsed into ``response_format``.
+
+    OpenAI guarantees the JSON matches the model's schema, so there is no tolerant parsing or
+    scalar/dict coercion to do — a list field is always a list, etc. Returns ``None`` on a refusal.
+    """
+    messages: list[dict] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    completion = client.chat.completions.parse(
+        model=model, messages=messages, response_format=response_format, temperature=temperature
+    )
+    return completion.choices[0].message.parsed
 
 
 def loads_json(raw: str) -> dict:
