@@ -1,6 +1,6 @@
 {
   "document_title": "Investment Advice Report",
-  "global_instructions": "You are writing one section of a financial advice report addressed to the client. Write in clear British English, first person plural ('we'). Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.",
+  "global_instructions": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.",
   "sections": [
     {
       "id": "introduction",

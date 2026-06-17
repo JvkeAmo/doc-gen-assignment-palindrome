@@ -80,9 +80,17 @@ class ExtractedFacts(BaseModel):
     )
     @classmethod
     def _coerce_scalar_to_list(cls, v):
-        # Models sometimes return a bare string/number where a list is expected.
+        # Models sometimes return a bare string/number, or a dict, where a list is expected. For a
+        # dict, flatten its values — that handles both {"H-ISA-01": "H-ISA-01"} and the model grouping
+        # ids under labels, e.g. {"ISAs": ["A", "B"]}. This keeps one malformed field from failing the
+        # whole extraction call.
         if v is None:
             return []
+        if isinstance(v, dict):
+            items: list = []
+            for value in v.values():
+                items.extend(value if isinstance(value, list) else [value])
+            return items
         return v if isinstance(v, list) else [v]
 
     @field_validator("live_values", "external_funds", "discovered_accounts", mode="before")
@@ -161,7 +169,8 @@ def _request_prompt(accounts: list[Account], text: str) -> str:
         '  "risk_profile": the agreed risk profile string, or null;\n'
         '  "selling": true/false/null — does the report involve selling/disposing investments;\n'
         '  "initial_charge": the initial charge string (e.g. "0%"), or null;\n'
-        '  "scope_account_ids": list of db account_ids the report covers;\n'
+        '  "scope_account_ids": list of db account_ids the report covers — only the accounts it '
+        "explicitly covers, not every account the client holds;\n"
         '  "investment_amounts": monetary amounts written explicitly as figures in THIS document '
         '(e.g. "GBP 20,000" -> 20000). If an amount is only described in words (e.g. "full value of '
         'the GIA"), return []. Do NOT infer numbers from the account database.'
@@ -176,13 +185,15 @@ def _meeting_prompt(accounts: list[Account], meeting: str, guidance: str) -> str
         "Return a JSON object with exactly these keys:\n"
         '  "client_label": string naming the client(s), or null;\n'
         '  "objectives": short HIGH-LEVEL circumstance/objective phrases (e.g. "both retired", '
-        '"no income required"). Do NOT include amounts;\n'
+        '"no income required"). Do NOT include amounts. Exclude future aspirations the client is NOT '
+        "acting on in this report (e.g. gifts, donations, or purchases mentioned only in passing);\n"
         '  "actions": short phrases of what the client should do WITH THEIR INVESTMENTS (e.g. '
         '"disinvest the joint GIA in full", "top up both ISAs equally"). Exclude the adviser\'s own '
         'admin steps (e.g. "prepare the report", "confirm the charges");\n'
         '  "live_values": list of {account_id, description, value, as_of, note} for any account '
         "value observed live in the meeting that may differ from the db. Use the meeting date as "
-        "as_of. Only when a number is actually given;\n"
+        "as_of. Record ONLY a balance explicitly stated as the current figure — never compute or "
+        "project one (e.g. a balance after a planned transfer or sale);\n"
         '  "external_funds": list of {label, amount, kind, note} for money not yet an account '
         "(inheritance, business-sale proceeds). kind is one of: \"available\" (an inflow investable "
         'now, e.g. an inheritance or a completion payment received); "contingent" (a future/uncertain '

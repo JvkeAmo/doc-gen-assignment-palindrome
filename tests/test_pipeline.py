@@ -86,6 +86,15 @@ def test_extracted_facts_coerces_scalars_to_lists():
     assert facts.guidance == ["handle sensitively"]
     assert facts.actions == ["do one thing"]
     assert len(facts.live_values) == 1 and facts.live_values[0].account_id == "X"
+    # a model returning a list field as a dict must not fail the whole call: {id: id} -> [id]...
+    dicty = ExtractedFacts.model_validate(
+        {"scope_account_ids": {"H-ISA-01": "H-ISA-01"}, "investment_amounts": [20000]}
+    )
+    assert dicty.scope_account_ids == ["H-ISA-01"]
+    assert dicty.investment_amounts == [20000.0]
+    # ...and ids grouped under labels are flattened to the ids
+    grouped = ExtractedFacts.model_validate({"scope_account_ids": {"ISAs": ["A", "B"], "GIA": ["C"]}})
+    assert grouped.scope_account_ids == ["A", "B", "C"]
 
 
 def test_merge_facts_unions_lists_and_keeps_first_scalar():
