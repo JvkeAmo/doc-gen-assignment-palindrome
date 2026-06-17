@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -48,10 +49,13 @@ def build_ledger(client_dir: Path, client, model, recorder: RunRecorder) -> Clie
         grouped = triage_folder(client_dir)
 
     image_text: dict[str, str] = {}
-    if grouped.get(Role.IMAGE):
-        with recorder.stage("ocr"):
-            for path in grouped[Role.IMAGE]:
-                image_text[path.name] = read_image_text(path, recorder)
+    images = grouped.get(Role.IMAGE) or []
+    if images:
+        # OCR each image concurrently (independent calls).
+        with recorder.stage("ocr"), ThreadPoolExecutor(max_workers=len(images)) as pool:
+            future_to_path = {pool.submit(read_image_text, path, recorder): path for path in images}
+            for future in as_completed(future_to_path):
+                image_text[future_to_path[future].name] = future.result()
 
     sources = read_sources(grouped, image_text)
     db_text = sources.pop(Role.DB, "")
@@ -79,14 +83,33 @@ def section_applies(section: dict, ledger: ClientLedger) -> bool:
 
 def generate_report(config: dict, ledger: ClientLedger, client, model, recorder: RunRecorder) -> str:
     instructions = config.get("global_instructions", "")
+    applicable = [s for s in config["sections"] if section_applies(s, ledger)]
+
+    # Fill every placeholder concurrently. The LLM prose slots (summary, recommendation) are the slow
+    # part and are independent of one another; the deterministic render slots are instant but harmless
+    # to run in a thread. Values are keyed by (section_index, name) so document assembly stays ordered
+    # and deterministic regardless of which fill finishes first.
+    fill_tasks = [
+        (index, name, spec)
+        for index, section in enumerate(applicable)
+        for name, spec in section.get("placeholders", {}).items()
+    ]
+    values: dict[tuple[int, str], str] = {}
+    if fill_tasks:
+        with ThreadPoolExecutor(max_workers=len(fill_tasks)) as pool:
+            future_to_key = {
+                pool.submit(fill_placeholder, name, spec, ledger, client, model, instructions, recorder):
+                (index, name)
+                for (index, name, spec) in fill_tasks
+            }
+            for future in as_completed(future_to_key):
+                values[future_to_key[future]] = future.result()
+
     sections = []
-    for section in config["sections"]:
-        if not section_applies(section, ledger):
-            continue
+    for index, section in enumerate(applicable):
         content = section["template"]
-        for name, spec in section.get("placeholders", {}).items():
-            value = fill_placeholder(name, spec, ledger, client, model, instructions, recorder)
-            content = content.replace(f"<<{name}>>", value)
+        for name in section.get("placeholders", {}):
+            content = content.replace(f"<<{name}>>", values[(index, name)])
         sections.append({"title": section.get("title", ""), "content": content})
     return format_document(config, sections)
 

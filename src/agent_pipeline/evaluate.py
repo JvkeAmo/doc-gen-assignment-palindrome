@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from agent_pipeline.golden import compare_ledger
@@ -29,25 +30,38 @@ def evaluate(output_dir: Path, ledger_dir: Path, golden_dir: Path, judge: bool =
         print(f"No ledgers found in {ledger_dir}. Generate with --ledger-dir first.")
         return 1
 
-    judge_client = judge_model = None
-    if judge:
-        from agent_pipeline.llm import build_client, model_name  # local import: only when judging
-
-        judge_client, judge_model = build_client(), model_name()
-
-    total_problems = 0
+    # Load every client's ledger + report up front so the (slow) judge calls can run concurrently.
+    loaded = []  # (name, ledger, report)
     for ledger_path in ledgers:
         name = ledger_path.stem
         ledger = ClientLedger.model_validate_json(ledger_path.read_text(encoding="utf-8"))
         report_path = output_dir / f"{name}.md"
         report = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
+        loaded.append((name, ledger, report))
+
+    # Kick off all LLM-judge calls in parallel (eval-only, soft metric); we resolve them in order
+    # below so the printed output stays deterministic.
+    pool = None
+    judge_futures: dict[str, object] = {}
+    if judge:
+        from agent_pipeline.judge import judge_report
+        from agent_pipeline.llm import build_client, model_name  # local import: only when judging
+
+        judge_client, judge_model = build_client(), model_name()
+        pool = ThreadPoolExecutor(max_workers=len(loaded))
+        for name, ledger, report in loaded:
+            if report:
+                judge_futures[name] = pool.submit(judge_report, judge_client, judge_model, report, ledger)
+
+    total_problems = 0
+    for name, ledger, report in loaded:
         problems: list[str] = []
 
         # 1. report rules (hard pass/fail)
         if report:
             problems += [f"report: {p}" for p in check_report(report, ledger)]
         else:
-            problems.append(f"report: missing ({report_path})")
+            problems.append(f"report: missing ({output_dir / f'{name}.md'})")
 
         # 2. golden ledger (hard pass/fail), if one exists for this client
         golden_path = golden_dir / f"{name}.json"
@@ -64,13 +78,14 @@ def evaluate(output_dir: Path, ledger_dir: Path, golden_dir: Path, judge: bool =
             print(f"[PASS] {name}")
 
         # 3. LLM-judge quality scores (soft metric, reported not gated)
-        if judge and report:
-            from agent_pipeline.judge import judge_report
-
-            scores = judge_report(judge_client, judge_model, report, ledger)
+        if name in judge_futures:
+            scores = judge_futures[name].result()
             for dimension, result in scores.items():
                 if isinstance(result, dict):
                     print(f"        ~ {dimension}: {result.get('score')}/5 — {result.get('reason', '')}")
+
+    if pool is not None:
+        pool.shutdown()
 
     print(f"\n{len(ledgers)} client(s) checked, {total_problems} issue(s) total.")
     return 1 if total_problems else 0
