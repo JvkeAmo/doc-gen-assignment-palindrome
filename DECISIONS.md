@@ -23,23 +23,27 @@ triage → extract (with provenance) → reconcile → generate off the ledger �
 Why: separates parse / decide / write into independently testable stages, and puts "which source
 do we trust" in one auditable place — the thing the brief explicitly grades.
 
-## LLM provider: local Ollama by default, OpenAI-swappable
+## LLM provider: OpenAI (`gpt-4o-mini`)
 
-Development and testing run against a **local Ollama** server (`qwen3:8b`) via its OpenAI-compatible
-API, so iteration costs no hosted credits. Provider is env-driven (`LLM_BASE_URL` / `LLM_API_KEY` /
-`LLM_MODEL`), so a clean checkout can point at OpenAI for the final run without code changes. A small
-`llm.py` wraps client creation and strips qwen3's `<think>` preamble.
+The pipeline runs on **OpenAI** — `gpt-4o-mini` for both text (extraction + generation) and the
+statement-image vision call. The model and endpoint stay env-overridable (`LLM_MODEL`, `OCR_MODEL`,
+`LLM_BASE_URL`) so a stronger model can be swapped in without code changes; the key resolves from
+`OPENAI_API_KEY` / `OPENAI_KEY` / `LLM_API_KEY`.
 
-> Note for re-running from a clean checkout: the default `.env.example` targets Ollama. Set the
-> `LLM_*` OpenAI values (or run Ollama with `qwen3:8b` pulled) before generating.
+> Earlier in development this defaulted to a local Ollama server (`qwen3:8b`) to iterate without
+> spending credits, behind the same env-driven abstraction. Once credits were available we moved to
+> OpenAI-only: it matches the assessor's clean-checkout run exactly, the prose fidelity is markedly
+> better (the small local model mis-stated figures and over-reached in prose), and it let the code
+> drop the Ollama-specific bits (qwen `<think>` stripping, the OCR model split) and lean on OpenAI
+> **structured outputs** for extraction (see below). gpt-4o-mini is cheap enough that this costs cents.
 
 ## Baseline kept on record
 
-Ran the unmodified starter on `qwen3:8b` to capture a "before" (`outputs/client_01_clean.md` at the
-baseline commit). It exhibits the failure modes the redesign targets: the verbatim FCA line gets
-paraphrased and duplicated, the Background leaks transaction amounts and out-of-scope intentions,
-two inconsistent holdings tables appear, and the conclusion regenerates a whole mini-report. The
-section-inclusion gate did correctly omit Tax (no disposal).
+A "before" capture of the unmodified starter exists at the baseline commit (`outputs/client_01_clean.md`).
+It exhibits the failure modes the redesign targets: the verbatim FCA line gets paraphrased and
+duplicated, the Background leaks transaction amounts and out-of-scope intentions, two inconsistent
+holdings tables appear, and the conclusion regenerates a whole mini-report. The section-inclusion gate
+did correctly omit Tax (no disposal).
 
 ## What the first end-to-end build does
 

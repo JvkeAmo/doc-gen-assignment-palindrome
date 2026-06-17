@@ -1,59 +1,41 @@
-"""LLM client factory and small completion helpers.
+"""LLM client factory and small completion helpers (OpenAI).
 
-Defaults to a **local Ollama** server, which exposes an OpenAI-compatible API, so that
-development and testing do not consume hosted API credits. Point the ``LLM_*`` environment
-variables elsewhere (e.g. OpenAI) to switch provider without code changes.
+The model and endpoint are env-overridable, so you can swap models (e.g. gpt-4o vs gpt-4o-mini) or
+point at an OpenAI-compatible endpoint without code changes:
 
-    LLM_BASE_URL   default http://localhost:11434/v1   (local Ollama)
-    LLM_API_KEY    default "ollama"                     (Ollama ignores the value)
-    LLM_MODEL      default qwen3:8b
+    LLM_MODEL      default gpt-4o-mini
+    LLM_BASE_URL   default https://api.openai.com/v1
+    API key        from OPENAI_API_KEY, OPENAI_KEY, or LLM_API_KEY
 """
 
 from __future__ import annotations
 
 import json
 import os
-import re
 
 from openai import OpenAI
 
-DEFAULT_BASE_URL = "http://localhost:11434/v1"
-DEFAULT_API_KEY = "ollama"
-DEFAULT_MODEL = "qwen3:8b"
-
-# qwen3 and similar "thinking" models emit a <think>...</think> preamble we don't want in output.
-_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+DEFAULT_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_MODEL = "gpt-4o-mini"
 
 
 def build_client() -> OpenAI:
-    """Return an OpenAI-compatible client, pointed at Ollama by default.
-
-    The API key resolves from LLM_API_KEY first, then OPENAI_KEY / OPENAI_API_KEY (so a hosted key
-    dropped in under any of the usual names just works for the clean-checkout run), then the Ollama
-    placeholder (which Ollama ignores).
-    """
+    """Return an OpenAI client. The API key resolves from OPENAI_API_KEY / OPENAI_KEY / LLM_API_KEY."""
     api_key = (
-        os.environ.get("LLM_API_KEY")
+        os.environ.get("OPENAI_API_KEY")
         or os.environ.get("OPENAI_KEY")
-        or os.environ.get("OPENAI_API_KEY")
-        or DEFAULT_API_KEY
+        or os.environ.get("LLM_API_KEY")
     )
-    return OpenAI(
-        base_url=os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL),
-        api_key=api_key,
-    )
+    if not api_key:
+        raise RuntimeError(
+            "No API key found. Set OPENAI_API_KEY (or OPENAI_KEY / LLM_API_KEY) in your .env."
+        )
+    return OpenAI(base_url=os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL), api_key=api_key)
 
 
 def model_name() -> str:
     """The model id to use (env-overridable)."""
     return os.environ.get("LLM_MODEL", DEFAULT_MODEL)
-
-
-def strip_thinking(text: str | None) -> str:
-    """Remove any <think>...</think> block and surrounding whitespace."""
-    if not text:
-        return ""
-    return _THINK_RE.sub("", text).strip()
 
 
 def loads_json(raw: str) -> dict:
@@ -77,23 +59,15 @@ def complete(
     as_json: bool = False,
     temperature: float = 0.0,
 ) -> str:
-    """Run one completion and return cleaned text.
-
-    Disables qwen3's reasoning preamble (via ``/no_think``) for speed and clean output, and
-    optionally requests a JSON object response.
-    """
-    user = prompt
-    if model.startswith("qwen3"):
-        user = f"{user}\n\n/no_think"
-
+    """Run one completion and return the text (optionally requesting a JSON-object response)."""
     messages: list[dict] = []
     if system:
         messages.append({"role": "system", "content": system})
-    messages.append({"role": "user", "content": user})
+    messages.append({"role": "user", "content": prompt})
 
     kwargs: dict = {"temperature": temperature}
     if as_json:
         kwargs["response_format"] = {"type": "json_object"}
 
     response = client.chat.completions.create(model=model, messages=messages, **kwargs)
-    return strip_thinking(response.choices[0].message.content)
+    return (response.choices[0].message.content or "").strip()

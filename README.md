@@ -11,19 +11,13 @@ around one typed intermediate — a `ClientLedger` — that every report section
 
 ```bash
 # clone your fork, then:
-cp .env.example .env          # defaults to a local Ollama server (no API credits needed)
+cp .env.example .env          # add your OpenAI API key (OPENAI_API_KEY=...)
 uv sync                       # add --extra dev for the tests
 ```
 
-By default the pipeline uses a **local Ollama** model (`qwen3:8b`) via its OpenAI-compatible API,
-so iteration costs nothing. Pull the models and run Ollama first:
-
-```bash
-ollama pull qwen3:8b
-ollama pull deepseek-ocr      # used to read statement images
-```
-
-To use hosted OpenAI instead, set the `LLM_*` variables in `.env` (see `.env.example`).
+The pipeline uses **OpenAI** (`gpt-4o-mini` by default for both text and the statement-image vision
+call). The model and endpoint are env-overridable (`LLM_MODEL`, `OCR_MODEL`, `LLM_BASE_URL`); see
+`.env.example`. The unit tests and `evaluate` are deterministic and need no API key.
 
 ## Run
 
