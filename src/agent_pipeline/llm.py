@@ -26,10 +26,21 @@ _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
 
 def build_client() -> OpenAI:
-    """Return an OpenAI-compatible client, pointed at Ollama by default."""
+    """Return an OpenAI-compatible client, pointed at Ollama by default.
+
+    The API key resolves from LLM_API_KEY first, then OPENAI_KEY / OPENAI_API_KEY (so a hosted key
+    dropped in under any of the usual names just works for the clean-checkout run), then the Ollama
+    placeholder (which Ollama ignores).
+    """
+    api_key = (
+        os.environ.get("LLM_API_KEY")
+        or os.environ.get("OPENAI_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or DEFAULT_API_KEY
+    )
     return OpenAI(
         base_url=os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL),
-        api_key=os.environ.get("LLM_API_KEY", DEFAULT_API_KEY),
+        api_key=api_key,
     )
 
 
