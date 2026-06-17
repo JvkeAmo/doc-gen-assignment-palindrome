@@ -1,240 +1,131 @@
 # Decisions
 
-A running log of the hardest calls and why, and what I would take further with more time.
+The hardest calls, why I made them (with the honest trade-off where there is one), and what I'd take
+further. This reflects the **final** design, not the order it was built in.
 
-## Architecture: a reconciled `ClientLedger` intermediate (not file-by-file fan-out)
+## A reconciled `ClientLedger` intermediate, not file-by-file fan-out
 
-The real difficulty here is **reconciling conflicting sources**, not formatting. So rather than
-fan an agent out per file and merge summaries (which scatters conflicting facts across separate
-contexts), the pipeline is staged around one typed intermediate:
+The real difficulty is **reconciling conflicting sources**, not formatting. So the pipeline is staged
+around one typed intermediate rather than fanning an agent out per file and merging summaries (which
+scatters conflicting facts across separate contexts):
 
 ```
-triage → extract (with provenance) → reconcile → generate off the ledger → verify
+triage → extract (per source, with provenance) → reconcile → generate off the ledger → verify
 ```
 
-- **Extraction** turns each source into tagged claims (value + source + date); it does **not**
-  resolve conflicts.
-- **Reconciliation** is the one place conflicts are resolved, producing a single `ClientLedger`
-  plus an auditable conflict log.
-- **Generation** reads only a clean slice of the ledger, so decoy figures and raw conflicts can
-  never reach the report.
-- **Verification** asserts the output against the ledger.
+Extraction records what each source claims (it does not resolve conflicts). **Reconciliation is the
+one place conflicts are resolved**, producing a single `ClientLedger` plus an auditable conflict log.
+Generation reads only a clean slice of the ledger, so decoys and raw conflicts can never reach the
+report. Verification asserts the output against the ledger. Each stage is independently testable, and
+"which source do we trust" lives in one auditable place — the thing the brief explicitly grades.
 
-Why: separates parse / decide / write into independently testable stages, and puts "which source
-do we trust" in one auditable place — the thing the brief explicitly grades.
+## OpenAI, with a stronger model for extraction than generation
 
-## LLM provider: OpenAI (`gpt-4o-mini`)
+`EXTRACT_MODEL=gpt-4o` for extraction; `LLM_MODEL=gpt-4o-mini` for generation and the statement-image
+vision call. Extraction precision (scope, figures) is where mistakes are expensive, and `gpt-4o-mini`
+proved unreliable on the scope-exclusion judgment — it pulled uncovered cash accounts into scope and
+no prompt/schema wording fixed it, whereas `gpt-4o` gets it right. Generation prose is easy enough for
+the mini model. So: precision where it matters, cheap prose elsewhere — a few cents per run. Models and
+endpoint are env-overridable; the key resolves from `OPENAI_API_KEY` / `OPENAI_KEY` / `LLM_API_KEY`.
 
-The pipeline runs on **OpenAI** — `gpt-4o-mini` for both text (extraction + generation) and the
-statement-image vision call. The model and endpoint stay env-overridable (`LLM_MODEL`, `OCR_MODEL`,
-`LLM_BASE_URL`) so a stronger model can be swapped in without code changes; the key resolves from
-`OPENAI_API_KEY` / `OPENAI_KEY` / `LLM_API_KEY`.
+## Extraction via structured outputs, one schema per source
 
-> Earlier in development this defaulted to a local Ollama server (`qwen3:8b`) to iterate without
-> spending credits, behind the same env-driven abstraction. Once credits were available we moved to
-> OpenAI-only: it matches the assessor's clean-checkout run exactly, the prose fidelity is markedly
-> better (the small local model mis-stated figures and over-reached in prose), and it let the code
-> drop the Ollama-specific bits (qwen `<think>` stripping, the OCR model split) and lean on OpenAI
-> **structured outputs** for extraction (see below). gpt-4o-mini is cheap enough that this costs cents.
+Each prose source is read with OpenAI **structured outputs** (`client.chat.completions.parse`) against
+its OWN Pydantic schema (`RequestFacts`, `MeetingFacts`, `StatementFacts`, `ExploreFacts`); the partials
+are then merged. Why per-source schemas rather than one big call:
+- **Focus** — a call can only return fields relevant to its source, so fields can't bleed across calls,
+  and the per-field *descriptions* carry the extraction rules (scope = covered-only; live values must be
+  stated, never computed; exclude non-actioned aspirations). The schema is the contract, so the prose
+  prompts stay tiny.
+- **Robustness** — the parsed result is shape-guaranteed, so there is no tolerant JSON parsing or
+  scalar/dict coercion to maintain.
 
-## Baseline kept on record
+The db itself is parsed deterministically (joint accounts de-duped). The calls are independent and run
+concurrently. Honest boundary: structured outputs guarantee the *shape*, not the *semantics* — a
+wrong-but-well-typed scope still passes, which is why verification + the golden ledgers remain the real
+correctness check (and why the extraction model choice mattered).
 
-A "before" capture of the unmodified starter exists at the baseline commit (`outputs/client_01_clean.md`).
-It exhibits the failure modes the redesign targets: the verbatim FCA line gets paraphrased and
-duplicated, the Background leaks transaction amounts and out-of-scope intentions, two inconsistent
-holdings tables appear, and the conclusion regenerates a whole mini-report. The section-inclusion gate
-did correctly omit Tax (no disposal).
+## Logic in `src/`; the config owns the wording
 
-## What the first end-to-end build does
+The brief says "most of your work goes in the config", but that describes the *starter* — a dumb loop
+where prompts are the only lever; it also says "improve the pipeline". Compliance-critical behaviour
+(verbatim text, "never invent a CGT figure", section inclusion, recency-wins, dedupe) is **enforced by
+code**, not left to a prompt's goodwill. But every **word the client reads is config-driven**: each
+`render:` placeholder carries a `template` in `template_config.json` and the renderer only supplies
+values/flags into it. So `config/` owns the report definition and all wording; `src/` owns the logic;
+the holdings table stays code-built (structural, not prose). Trade-off: a reviewer expecting a fatter
+config might read this as not following the letter of the brief — mitigated by its being the right call
+for reliability, and by this log.
 
-- **Triage** routes files by role and drops decoys (market update, portfolio pack) before they can
-  reach a prompt.
-- **Extraction** parses the db deterministically (de-duping joint accounts) and reads each prose
-  source via its own focused LLM call (see "Per-source extraction" below).
-- **Reconciliation** applies house rules — recency-wins (with a conflict log), null→flag, finalise
-  figures (CGT, fee rates) → flags, scope, disposal — into one `ClientLedger`.
-- **Generation** fills each section from a ledger slice: deterministic renderers for the holdings
-  table, fees, scope and the CGT statement; LLM prose only for the summary and recommendation;
-  verbatim lines (FCA, risk warning) are static template text.
-- **Verification** checks the report against the ledger and runs after every generation; the same
-  checks back an `evaluate` harness and a pytest suite.
+## Deterministic where it counts, LLM only where needed — the funds calculator
 
-All four clients run end to end on local `qwen3:8b`. The hardest traps are handled: stale-vs-fresh
-values (incl. client_04's image agreeing with the stale db), joint de-dup, closed/null accounts,
-the contingent earnout, and the conditional Tax section.
+"LLM proposes; code checks and computes." Numbers, dates, dedupe, section inclusion and the funds
+arithmetic are deterministic; the LLM only reads prose. The clearest example is `funds.py`:
+`available_to_invest = sum(available inflows) − sum(committed outflows)`, contingent money excluded.
+The LLM does the fuzzy part (classifying each external fund `available`/`contingent`/`committed`); the
+tool does the arithmetic the model can't be trusted with. The result is written into the ledger as a
+**sourced** figure, so the recommendation can state it and verification accepts it (client_04:
+£850k − £200k bridging = £650k investable, the £400k earnout excluded).
 
-## Known limitation / next iteration
+## Generation off the ledger, with a bounded reflection loop; verbatim is static
 
-On the small local model, prose generation occasionally under-uses the ledger (e.g. client_02's
-recommendation quoted the stale £40k and a £20k split rather than the reconciled £45k). The ledger
-is correct; the weak link is the 8b model's prose fidelity. The verifier *catches* this. Next steps:
-a stronger generation model, stricter prompts, and/or a critic→revise loop; netting committed money
-(client_04's £200k bridging) numerically; per-client guidance currently over-captures process notes.
+Each section is filled from a ledger slice: deterministic renderers (table, fees, scope, CGT) and LLM
+prose only for the summary and recommendation. Verbatim lines (FCA, risk warning) are **static template
+text**, never generated. Prose slots run through a bounded **critique → revise** loop: a slot-scoped
+critic (`verify.critique_slot`) rejects unsourced or computed figures, the prompt is re-issued with the
+specific problems (max 2 retries), and if it still fails the section ships with a visible
+`[FLAG: needs review]` rather than hiding the issue. This is the "agentic" part — bounded, verify-driven
+self-correction rather than open-ended orchestration, which is the right shape for a regulated document.
 
-## Per-source extraction (not one big call)
+## Evaluation: report rules + golden ledgers, and no overfitting
 
-Each free-text source gets its own focused LLM call — the report request, the meeting note (+ internal
-notes), and any statement image — each anchored by the db account digest so entity-matching survives,
-then the partial `ExtractedFacts` are merged (first-non-null for scalars, union for lists).
+"Correct" is defined two ways in `evaluate.py`:
+- **Report rules** (`verify.check_report`) — verbatim lines, Tax iff disposal, gaps flagged, table
+  consistent, and **every figure traces to the ledger** (this generally subsumes decoy detection).
+- **Golden ledgers** (`eval/golden/*.json`) — hand-authored expected reconciled facts (values, dates,
+  scope, disposal, conflicts, funds, gaps): a precise check on the deterministic heart, lenient on
+  free-text.
 
-Why: a small model drops fewer fields on a tight, single-purpose JSON than on a sprawling 9-key one,
-and the calls are independent (parallelisable later). The shared db anchor preserves cross-source
-knowledge, and the expensive cross-referencing (recency, dedupe) happens deterministically in
-reconcile anyway. This split immediately surfaced two bugs the single call had hidden: a source
-returning a list field in the wrong shape (since solved structurally by structured outputs) silently
-emptied a whole extraction, and
-`investment_amounts` was inferring the stale db value (now restricted to figures written explicitly in
-the document). Trade-off: ~3 calls instead of 1 (they run concurrently, so wall-clock is ~one call).
+The goldens are test fixtures in `eval/`, not production logic, so they are **not** the overfitting the
+brief warns against — and I removed an earlier `DECOY_FIGURES` denylist that *was* overfit (it baked the
+four examples' decoy numbers; the general figure-sourcing check covers it). The goldens earned their
+keep: authoring/auditing them caught a real scope error that a held-out run would otherwise have failed.
 
-## Structured outputs + per-source schemas; a stronger model for extraction
+## LLM-judge: eval-only, not in the inference loop
 
-Extraction uses OpenAI **structured outputs** (`client.chat.completions.parse`) against a Pydantic
-schema, so the parsed result is guaranteed to match the shape — no tolerant JSON parsing, no
-scalar/dict coercion. Crucially each source has its OWN schema (`RequestFacts`, `MeetingFacts`,
-`StatementFacts`, `ExploreFacts`): a call can only return fields relevant to that source, so fields
-don't bleed across calls, and the per-field *descriptions* carry the extraction rules (scope =
-covered-only, no computed live values, exclude non-actioned aspirations) — the schema is the contract,
-which let the prose prompts slim right down.
+`judge.py` scores prose *quality* (faithfulness, background altitude, sensitivity, clarity) — the
+dimensions deterministic checks can't measure. It is deliberately **not** used at inference: the runtime
+guard is the fast, deterministic critic; the judge is slower and flakier and belongs offline where a
+human reads scores and noise averages out. Complementary (compliance vs quality), not redundant.
 
-Extraction runs on a **stronger model than generation** (`EXTRACT_MODEL=gpt-4o`, `LLM_MODEL=gpt-4o-mini`).
-We found `gpt-4o-mini` unreliable on the scope-exclusion judgment (it pulled uncovered cash accounts
-into scope, and no prompt/schema wording fixed it) whereas `gpt-4o` gets it right; generation prose is
-easy enough for the mini model. Precision where it matters, cheap prose elsewhere — a few cents per run.
+## A second document type is just another config
 
-> A note on what structured outputs do and don't do: they guarantee the *shape* is valid, not that the
-> *content* is correct. A wrong-but-well-typed scope still passes the schema, so `verify.py` and the
-> golden ledgers (which check semantics) remain the real correctness guarantees.
-
-## Why the work sits in `src/`, not only the config
-
-The brief says "most of your work goes in the config" — that describes the *starter's* design, where
-the pipeline is a dumb loop and prompts are the only lever. It also says "improve the pipeline; it's
-just llm calls". We deliberately moved logic (extraction, reconciliation, verification) into `src/`,
-because compliance-critical behaviour — verbatim text, "never invent a CGT figure", section inclusion —
-should be enforced by code, not left to a prompt's goodwill. The config still owns the report
-definition (sections, inclusion rules, the LLM prompts, verbatim text); the few prompts that remain are
-the ones that genuinely need a model, which is what makes iterating/tuning them tractable.
-
-## Config owns wording, Python owns logic
-
-Following on from the above: the deterministic sections (fees, the CGT statement, scope) used to
-hard-code their *sentences* in `render.py`, which made the client-facing wording less editable than a
-prompt — cutting against "most of your work goes in the config". The wording now lives in each
-`render:` placeholder's `template` in `config/template_config.json`; the renderer only supplies the
-values and flags the template slots them into:
-
-```jsonc
-"fees": {
-  "source": "render:fees",
-  "template": "The ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge.{initial_charge}{fee_flags}"
-}
-```
-
-So every word the client reads is config-driven and tweakable, while determinism and compliance stay
-in code (recency-wins, dedupe, "never invent a CGT figure", the to-confirm flags). The holdings table
-stays code-built — it is structural, not prose. This split is also what makes a second document type
-cheap: a new config reuses the same ledger and renderers without touching `src/`.
-
-## Run telemetry
-
-Every run writes `outputs/runs/<client>_<ts>.json` (per-stage timings, every prompt + response +
-latency, the ledger, the report) and appends to `outputs/runs/index.md`, for inspecting prompts,
-outputs and latency. Gitignored (local dev telemetry, not part of the deliverable).
-
-## Reflection loop (generate → critique → revise)
-
-LLM prose slots are now generated through a bounded critique→revise loop: generate, run a
-slot-scoped critic (`verify.critique_slot` — summary must carry no monetary figures; recommendation
-may only state ledger-sourced figures, no computed splits), and on failure re-prompt with the
-specific problems (max 2 retries; at temperature 0 the prompt must change each time, which the
-feedback does). If still failing, the section ships with a visible `[FLAG: needs review]` rather than
-hiding the issue. The critic and the final verifier share `money_tokens`/`allowed_figures`, so they
-agree on what counts as a figure — including £/$/€ and bare comma-grouped numbers (a real hole: the
-model sometimes writes `$22,500`, which a £-only check missed). The critic guarantees figures are
-*sourced*, not *semantically apt* — judging aptness/tone is left to a future LLM-judge.
-
-## Evaluation: two layers, plus a removed overfit
-
-"Correct" is defined two ways, both in the eval harness (`evaluate.py`):
-- **Report rules** (`verify.check_report`) — invariants on the final report (verbatim lines, Tax iff
-  disposal, gaps flagged, every figure sourced, table consistent).
-- **Golden ledgers** (`eval/golden/*.json`, `golden.compare_ledger`) — hand-authored expected
-  reconciled facts for each example (values, dates, scope, disposal, conflicts, funds, gaps),
-  evaluating extraction+reconciliation directly. Stable fields only; free-text is not asserted. These
-  are test fixtures, not production logic — not the overfitting the brief warns against.
-
-Removed `DECOY_FIGURES`: it hard-coded the four examples' specific decoy numbers (overfit — the
-held-out set differs) and was redundant with the general "every figure must trace to the ledger"
-check. Also made figure detection currency-agnostic (£/$/€) and catch bare comma-grouped numbers.
-
-## LLM-judge — eval only, not inference
-
-`judge.py` scores prose quality (faithfulness, background altitude, sensitivity, clarity) against the
-ledger — the dimensions deterministic checks can't measure (e.g. whether the inheritance was handled
-tactfully). Run via `evaluate --judge`. It is deliberately **not** used at inference: the runtime
-guard is the fast, deterministic `critique_slot`; the judge is slower/flakier and belongs where a
-human reads the scores and noise averages out. The two are complementary (compliance vs quality), not
-redundant.
-
-## Funds calculator: LLM classifies, code computes
-
-`funds.py` computes `available_to_invest = sum(available inflows) − sum(committed outflows)`, with
-contingent money (an unreceived earnout) excluded. The LLM does the fuzzy part — classifying each
-external fund as `available` / `contingent` / `committed` during extraction; the deterministic tool
-does the arithmetic the model can't be trusted with. The result is written into the ledger as a
-sourced figure, so the recommendation can state it and verification accepts it (an LLM-computed number
-would be unsourced and often wrong). client_04: completion £850k − bridging £200k = £650k investable,
-earnout £400k excluded. Asserted by the golden ledgers.
-
-## Second document type: a new config, the same ledger
-
-Because every section is generated from the reconciled `ClientLedger` and (after the rebalance above)
-all wording lives in the config, a second document type is just a second config that reuses the same
-ledger and renderers with **no new `src/` logic** — the proof that data (ledger) and presentation
-(config) are genuinely separate. The included example, `config/adviser_review_config.json`, is an
-**internal reconciliation review sheet**: it surfaces the conflict log (which source we trusted and
-why), per-account value provenance, and every outstanding flag. That deliberately demonstrates the
-rubric's "which source to trust when sources disagree" — as a document, not buried in the ledger JSON.
-
-Configs declare a `doc_id` (output suffix, so it doesn't overwrite the advice report) and which checks
-apply. The review sheet sets `"client_facing": false`, so it gets a minimal "did it render" check
-(`verify.check_internal`) rather than the client-report compliance rules — an audit view legitimately
-shows stale/rejected values and closed accounts. (`verify.check_report` also gained a `check_tax` flag,
-default-on, and only requires a gap's flag when its section is present — so a client-facing doc without
-a Tax section stays supported too.)
+Because every section generates from the same ledger and all wording lives in config, a second document
+type needs **no new `src/` logic**. The included example (`adviser_review_config.json`) is an internal
+**reconciliation review sheet**: the conflict log (which source we trusted, and why), per-account
+provenance, and all flags — i.e. it demonstrates "which source to trust" as a document, not buried in
+JSON. It sets `"client_facing": false`, so it gets a minimal render check instead of the client-report
+rules (an audit view legitimately shows stale/rejected values and closed accounts).
 
 ## Unknown documents: route, explore, flag — never silently miss
 
-Triage is filename-based, so an unfamiliar file is a real risk. Rather than fold it into the structured
-extraction (where novel content can be silently skipped, since that prompt only looks for known fields)
-or drop it, an unrecognised file is routed to a new `Role.UNKNOWN` and read by a separate **exploratory
-LLM pass that fires only when an unknown file is present** (no cost otherwise). That pass can surface
-values for known accounts, **discover accounts not in the db**, and list **`unmapped`** material it
-can't categorise. Reconciliation *uses* what it found but *flags* it: discovered accounts enter the
-ledger tagged `value_source="unknown"` with a review flag, and unmapped notes become review flags —
-both surfaced under the holdings table. This is the route-don't-drop principle for held-out
-robustness: never silently trust an unvetted source, never silently discard material. It is idle on
-the four example clients (none has an unknown file) and proven by unit tests. Honest boundary: a fresh
-*value for a known account* taken from an unknown source currently merges via the normal recency path;
-per-value "unknown" provenance flagging is a future refinement.
+Triage is filename-based, so an unfamiliar file is a real risk. Instead of folding it into the
+structured extraction (where novel content is silently skipped) or dropping it, an unrecognised file
+goes to `Role.UNKNOWN` and a separate **exploratory pass that fires only when one is present**. It can
+discover accounts not in the db and list `unmapped` material; reconcile *uses but flags* it (provenance
+`unknown`, review flags surfaced under the table). Route-don't-drop: never silently trust an unvetted
+source, never silently discard material. A held-out robustness mechanism; idle on the four examples,
+proven by tests.
 
-## Concurrency: overlap every independent LLM call
+## Concurrency: overlap every independent call
 
-The pipeline's independent model calls run concurrently (thread pools, since the work is I/O-bound on
-the model server): the per-source extraction calls, OCR over multiple images, the generation prose
-slots (summary/recommendation), and the eval's per-client judge calls. Ordering is always preserved
-where it matters — extraction merges in a fixed source order, and the report assembles by section
-index — so output stays deterministic regardless of which call returns first.
+The independent model calls — per-source extraction, OCR, the prose slots, the eval judge — run
+concurrently (thread pools; the work is I/O-bound), with ordering preserved where it matters so output
+stays deterministic. On OpenAI this cuts the dominant extract stage and the generation stage to roughly
+their slowest single call.
 
-Honest caveat: against a **single local Ollama GPU this is ~a no-op** — one model time-slices the
-concurrent requests, so wall-clock is roughly unchanged (telemetry shows three ~85s extraction calls
-overlapping into ~85s, not summing to ~250s). The speedup lands on a backend that genuinely serves
-requests in parallel (**OpenAI**, the assessor's run), where it cuts the dominant extract stage and
-the generation stage to about their slowest single call. Worst case it changes nothing; it never makes
-things slower. The `runlog` per-stage timings are what make this measurable.
-
-## To take further (noted, not yet done)
-- Use judge scores to drive prompt tuning (the "prompts as code" loop) — the lightweight version is a
-  judge-scored A/B over prompt variants, committing the winner (prompts-as-code via visible history).
-- Per-value provenance flagging for values a known account receives from an unrecognised source.
-- A vision pass (read + interpret in one step) for unrecognised images, vs. the current OCR→text path.
+## What I'd take further
+- Use the judge to drive prompt tuning — a judge-scored A/B over prompt variants, committing the winner
+  (prompts-as-code via visible history).
+- Per-value "unknown" provenance for a *known* account's value taken from an unrecognised source.
+- A direct vision pass (read + interpret in one step) for unrecognised images, vs. the current OCR→text.
