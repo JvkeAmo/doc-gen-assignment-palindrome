@@ -1,5 +1,5 @@
 {
-  "client": "David and Susan Clarke",
+  "client": "David & Susan Clarke",
   "risk_profile": "5 (balanced)",
   "accounts": [
     {
@@ -50,7 +50,7 @@
       "amount": null
     },
     {
-      "text": "top up both ISAs equally",
+      "text": "use proceeds to top up both David's and Susan's Stocks & Shares ISAs",
       "refs": [],
       "is_disposal": false,
       "amount": null

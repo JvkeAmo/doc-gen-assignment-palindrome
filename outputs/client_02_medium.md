@@ -22,9 +22,9 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-You should proceed with disinvesting the joint General Investment Account (H-GIA-J) in full, which currently holds approximately £45,000. This action will provide you with the necessary funds to enhance your investment strategy.
+You should proceed to disinvest the joint General Investment Account, which currently holds approximately £45,000. The proceeds from this disinvestment will be used to top up both David's and Susan's Stocks & Shares ISAs. 
 
-Following the disinvestment, we recommend that you top up both of your Stocks & Shares ISAs equally. Your current balance in the Stocks & Shares ISA (H-ISA-D) is £61,000, and in the other Stocks & Shares ISA (H-ISA-S), it is £58,500. By equally distributing the funds from the disinvestment and any new money you may have, you can optimise your tax-efficient savings and investment growth potential.
+David's Stocks & Shares ISA currently has a value of £61,000, while Susan's Stocks & Shares ISA is valued at £58,500. By reallocating the funds from the disinvestment, you can enhance the investment potential within both ISAs, allowing for more effective growth opportunities in the long term.
 
 ## Tax Implications
 

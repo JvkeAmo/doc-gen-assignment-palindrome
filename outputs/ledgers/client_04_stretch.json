@@ -1,5 +1,5 @@
 {
-  "client": "James and Caroline Whitmore",
+  "client": "James & Caroline Whitmore",
   "risk_profile": "4 (balanced to moderate)",
   "accounts": [
     {
@@ -141,7 +141,7 @@
       "amount": null
     },
     {
-      "text": "make pension contributions into both SIPPs up to the appropriate level",
+      "text": "make pension contributions into both SIPPs",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -153,7 +153,7 @@
       "amount": null
     },
     {
-      "text": "place the remaining balance into a new jointly-held investment account",
+      "text": "place remaining balance into a new jointly-held investment account",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -167,22 +167,22 @@
   ],
   "external_funds": [
     {
-      "label": "Completion payment from business sale",
+      "label": "Completion payment",
       "amount": 850000.0,
       "kind": "available",
-      "note": "Currently sitting in a solicitor's client account"
+      "note": "Received on completion, sitting in solicitor's client account."
     },
     {
-      "label": "Deferred earnout from business sale",
+      "label": "Deferred earnout",
       "amount": 400000.0,
       "kind": "contingent",
-      "note": "Payable over the next two years, contingent on performance"
+      "note": "Payable over next two years, contingent on revenue targets."
     },
     {
       "label": "Bridging loan repayment",
       "amount": 200000.0,
       "kind": "committed",
-      "note": "Due shortly from the completion payment"
+      "note": "Part of completion payment committed to repay this loan."
     }
   ],
   "disposal": true,
@@ -214,13 +214,16 @@
   "objectives": [
     "long-term growth",
     "balanced-to-moderate risk appetite",
-    "no income required"
+    "no income requirement",
+    "build a tax-efficient base to replace income in three years"
   ],
   "amounts": [
     650000.0
   ],
   "guidance": [
-    "James is concerned about over-contributing to pensions; contributions will be sized appropriately."
+    "Sale of James's business and emotional period following it",
+    "Completion payment and earnout details",
+    "Bridging loan repayment commitment"
   ],
   "conflicts": [
     {

@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-You are a retired individual with a moderate risk profile, and you do not require any income from your investments at this time. Your primary focus is on managing your Stocks & Shares ISA effectively to align with your financial objectives.
+You are a retired individual with a moderate risk profile, comfortable with taking on some level of risk in your investments. As you do not require any income from your investments at this time, your focus is on managing your Stocks & Shares ISA to align with your financial objectives.
 
 The accounts covered by this report are as follows:
 
@@ -20,7 +20,7 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-You should consider moving £20,000 from your cash account to your Stocks & Shares ISA. This action will allow you to take advantage of the investment opportunities available within the ISA, potentially enhancing your returns compared to keeping the funds in cash. Your current balance in the Stocks & Shares ISA is £52,000, and this additional investment could further diversify your portfolio and align with your long-term financial goals. By making this transfer, you can work towards maximising the benefits of your tax-efficient investment account.
+You should move £20,000 from your Holloway cash account to your Stocks & Shares ISA. This action will enhance your investment portfolio by increasing the amount held within your ISA, which can provide you with potential growth opportunities. By transferring this amount, you can take advantage of the tax-efficient benefits that an ISA offers, allowing your investments to grow without incurring tax on any gains. This strategic move aligns with our goal of optimising your financial position and maximising your investment potential.
 
 ## Fees & Charges
 

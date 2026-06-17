@@ -1,5 +1,5 @@
 {
-  "client": "Robert and Jean Fletcher",
+  "client": "Robert & Jean Fletcher",
   "risk_profile": "4 (moderate)",
   "accounts": [
     {
@@ -57,7 +57,7 @@
   ],
   "actions": [
     {
-      "text": "disinvest the joint GIA in full",
+      "text": "disinvest the joint GIA",
       "refs": [],
       "is_disposal": true,
       "amount": null
@@ -69,7 +69,7 @@
       "amount": null
     },
     {
-      "text": "open a new jointly-held investment account for the balance",
+      "text": "open a new jointly-held investment account",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -77,10 +77,10 @@
   ],
   "external_funds": [
     {
-      "label": "inheritance from Jean's mother",
+      "label": "Inheritance from Jean's late mother",
       "amount": 120000.0,
       "kind": "available",
-      "note": "inheritance has cleared"
+      "note": "Received following the recent death of Jean's mother."
     }
   ],
   "disposal": true,
@@ -111,13 +111,14 @@
   ],
   "objectives": [
     "long-term growth",
-    "no income required"
+    "no income required",
+    "moderate risk level"
   ],
   "amounts": [
     120000.0
   ],
   "guidance": [
-    "Handle the inheritance sensitively following the recent death of Jean's mother."
+    "Handle the inheritance sensitively."
   ],
   "conflicts": [
     {

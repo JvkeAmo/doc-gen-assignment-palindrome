@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-James and Caroline Whitmore are focused on achieving long-term growth while maintaining a balanced-to-moderate risk profile. They do not require any immediate income from their investments, allowing for a more strategic approach to their financial planning. We understand James's concerns regarding pension contributions and will ensure that any contributions are sized appropriately to avoid over-contributing.
+James and Caroline Whitmore are focused on achieving long-term growth while maintaining a balanced-to-moderate risk profile. With no immediate income requirements, they aim to build a tax-efficient investment base to replace income in three years, particularly in light of the recent sale of James's business and the associated emotional transition. Additionally, they have a commitment to repay a bridging loan, which will be a consideration in their financial planning.
 
 The accounts covered by this report are as follows:
 
@@ -26,19 +26,19 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-To optimise your financial position, we recommend several actions that will utilise both your existing assets and the new funds available from the business sale.
+To optimise your investment strategy for the new tax year, we recommend that you take the following actions. 
 
-Firstly, you should use both your ISA allowances for the new tax year. This will allow you to shelter more of your investments from tax, maximising your returns over time. You currently have Stocks & Shares ISAs with values of £85,000 and £82,000, which can be supplemented with new contributions.
+Firstly, utilise both of your ISA allowances. This will allow you to shelter more of your investments from tax, maximising your potential returns. You currently have £85,000 in your Stocks & Shares ISA (H4-ISA-J) and £82,000 in your other Stocks & Shares ISA (H4-ISA-C). 
 
-Next, we advise making pension contributions into both of your SIPPs. Your current SIPP values are £610,000 and £430,000. Contributing to these accounts will not only enhance your retirement savings but also provide potential tax benefits.
+Next, we advise making pension contributions into both of your SIPPs. You have £610,000 in your SIPP (B4-SIPP-J) and £430,000 in your other SIPP (B4-SIPP-C). Contributing to your pensions can provide significant tax advantages and help secure your financial future.
 
-Additionally, you should consider adding to the Holloway joint General Investment Account (GIA), which currently stands at approximately £255,000. This will help diversify your investment portfolio and take advantage of market opportunities.
+Additionally, consider adding to the Holloway joint General Investment Account (H4-GIA-HJ), which currently holds approximately £255,000. This will enhance your investment portfolio and provide further growth opportunities.
 
-With the remaining balance from your new funds, you should establish a new jointly-held investment account. This will provide you with further flexibility in managing your investments and accessing funds as needed.
+After these contributions, you should place the remaining balance into a new jointly-held investment account. This will allow for flexibility and diversification in your investment strategy.
 
-Finally, it is prudent to disinvest a portion of the Holloway joint GIA and rebalance it. This action will help ensure that your investment strategy remains aligned with your financial goals and risk tolerance.
+Finally, we recommend disinvesting a portion of the Holloway joint GIA and rebalancing it. This will help to ensure that your investment allocation aligns with your risk tolerance and financial goals.
 
-In summary, by implementing these recommendations, you will effectively utilise your available resources and enhance your overall investment strategy.
+In total, you have £650,000 available to invest now, which comes from the completion payment. This amount, along with the proceeds from any disinvested accounts, will provide you with the necessary funds to implement these recommendations effectively.
 
 ## Tax Implications
 

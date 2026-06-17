@@ -8,7 +8,7 @@ This firm is authorised and regulated by the Financial Conduct Authority.
 
 ## Background & Objectives
 
-You, Robert and Jean Fletcher, are focused on achieving long-term growth for your investments, with no immediate income requirements. Given your moderate risk profile, we will carefully consider your investment strategy, particularly in light of the recent inheritance following the passing of Jean's mother. Our aim is to ensure that your financial goals are met while handling this sensitive matter with the utmost care.
+You, Robert and Jean Fletcher, are focused on achieving long-term growth through your investments, with a moderate risk profile that aligns with your financial goals. You do not require any immediate income from your investments, allowing for a more growth-oriented strategy. We also recognise the importance of handling your recent inheritance with care as we work together to optimise your financial position.
 
 The accounts covered by this report are as follows:
 
@@ -22,13 +22,13 @@ The accounts covered by this report are as follows:
 
 We recommend the following:
 
-You should proceed with disinvesting the joint General Investment Account, which currently holds approximately £38,000. This action will allow you to access the funds for further investment. 
+You should proceed with disinvesting the joint General Investment Account, which currently holds approximately £38,000. This action will free up funds that can be reinvested in a more tax-efficient manner.
 
-Next, it is advisable to fund both Robert's and Jean's ISAs for the new tax year. The current value of Robert's Stocks & Shares ISA is £70,000, while Jean's Stocks & Shares ISA stands at £66,000. 
+Next, it is advisable to fund both Robert's and Jean's ISAs for the new tax year. The current value of Robert's Stocks & Shares ISA is £70,000, while Jean's Stocks & Shares ISA stands at £66,000. By contributing to these ISAs, you can take advantage of the tax benefits they offer.
 
-Additionally, you should open a new jointly-held investment account for the balance of your investments. You have new money available to invest amounting to £120,000, which comes from the inheritance from Jean's mother. This new money is separate from the existing accounts and will provide you with further opportunities for growth. 
+Additionally, you should open a new jointly-held investment account. This will allow you to manage your investments more effectively and provide flexibility for future investment opportunities.
 
-By following these steps, you will effectively manage your investments and take advantage of the available funds.
+You also have an inheritance from Jean's late mother amounting to £120,000 available for investment. This new money can be strategically allocated alongside the proceeds from the disinvestment of the joint General Investment Account. By taking these steps, you can enhance your investment strategy and optimise your financial position.
 
 ## Tax Implications
 

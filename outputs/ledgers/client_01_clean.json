@@ -31,7 +31,7 @@
   ],
   "actions": [
     {
-      "text": "move £20,000 from cash account to Stocks & Shares ISA",
+      "text": "move £20,000 from Holloway cash account to Stocks & Shares ISA",
       "refs": [],
       "is_disposal": false,
       "amount": null
@@ -60,6 +60,7 @@
   ],
   "objectives": [
     "retired",
+    "comfortable with moderate risk",
     "no income required"
   ],
   "amounts": [
