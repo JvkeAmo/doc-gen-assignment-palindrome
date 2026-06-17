@@ -16,6 +16,7 @@ Extraction does NOT resolve conflicts — it only records what each source says;
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 
 from openai import OpenAI
@@ -266,26 +267,39 @@ def extract_facts(
     sources: dict[Role, str],
     recorder: RunRecorder | None = None,
 ) -> ExtractedFacts:
-    """Run a focused extraction call per source, then merge into one ExtractedFacts."""
+    """Run a focused extraction call per source, concurrently, then merge into one ExtractedFacts.
+
+    The per-source calls are independent and I/O-bound on the model server, so they run in parallel
+    threads — this turns the extract stage from sum-of-calls into about the slowest single call.
+    Results are gathered back in a FIXED source order so the first-non-null merge stays deterministic
+    no matter which call returns first.
+    """
     guidance = sources.get(Role.GUIDANCE, "")
-    parts: list[ExtractedFacts] = []
 
+    # (telemetry_name, prompt) in priority order — this order decides who wins a first-non-null
+    # scalar in merge_facts, so it must not depend on completion order.
+    tasks: list[tuple[str, str]] = []
     if Role.REPORT_REQUEST in sources:
-        prompt = _request_prompt(accounts, sources[Role.REPORT_REQUEST])
-        parts.append(_extract_source(client, model, prompt, "extract:report_request", recorder))
-
+        tasks.append(("extract:report_request", _request_prompt(accounts, sources[Role.REPORT_REQUEST])))
     if Role.MEETING_NOTES in sources:
-        prompt = _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance)
-        parts.append(_extract_source(client, model, prompt, "extract:meeting_notes", recorder))
-
+        tasks.append(("extract:meeting_notes", _meeting_prompt(accounts, sources[Role.MEETING_NOTES], guidance)))
     if Role.IMAGE in sources:
-        prompt = _statement_prompt(accounts, sources[Role.IMAGE])
-        parts.append(_extract_source(client, model, prompt, "extract:statement", recorder))
-
-    # Exploratory pass over unrecognised documents — fires only when one is present, so the normal
-    # case pays nothing. It can discover accounts not in the db and flag material it can't categorise.
+        tasks.append(("extract:statement", _statement_prompt(accounts, sources[Role.IMAGE])))
+    # Exploratory pass over unrecognised documents — only present when an unknown file exists, so the
+    # normal case pays nothing. It can discover accounts not in the db and flag uncategorised material.
     if Role.UNKNOWN in sources:
-        prompt = _explore_prompt(accounts, sources[Role.UNKNOWN])
-        parts.append(_extract_source(client, model, prompt, "extract:unknown", recorder))
+        tasks.append(("extract:unknown", _explore_prompt(accounts, sources[Role.UNKNOWN])))
+    if not tasks:
+        return ExtractedFacts()
 
+    results: dict[int, ExtractedFacts] = {}
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        future_to_index = {
+            pool.submit(_extract_source, client, model, prompt, name, recorder): i
+            for i, (name, prompt) in enumerate(tasks)
+        }
+        for future in as_completed(future_to_index):
+            results[future_to_index[future]] = future.result()
+
+    parts = [results[index] for index in range(len(tasks))]
     return merge_facts(parts)

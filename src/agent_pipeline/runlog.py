@@ -8,6 +8,7 @@ This is local dev telemetry for inspecting prompts/outputs/latency — not part 
 from __future__ import annotations
 
 import json
+import threading
 import time
 from contextlib import contextmanager
 from datetime import datetime
@@ -25,8 +26,12 @@ class RunRecorder:
         self.model = model
         self.started = datetime.now()
         self._t0 = time.perf_counter()
+        # Per-stage wall-clock times (triage/ocr/extract/reconcile/generate/verify). Telemetry only,
+        # but it's how we see where the time goes — e.g. that extract dominates, which is what makes
+        # parallelising the per-source calls worthwhile. Written to outputs/runs/ + the index table.
         self.stages: dict[str, float] = {}
         self.llm_calls: list[dict] = []
+        self._lock = threading.Lock()  # extract now runs its calls in parallel threads
 
     @contextmanager
     def stage(self, name: str):
@@ -37,15 +42,16 @@ class RunRecorder:
             self.stages[name] = round(time.perf_counter() - start, 2)
 
     def record_llm(self, name: str, prompt: str, response: str, seconds: float, system: str | None = None) -> None:
-        self.llm_calls.append(
-            {
-                "name": name,
-                "seconds": round(seconds, 2),
-                "system": system,
-                "prompt": prompt,
-                "response": response,
-            }
-        )
+        with self._lock:  # called concurrently during parallel extraction
+            self.llm_calls.append(
+                {
+                    "name": name,
+                    "seconds": round(seconds, 2),
+                    "system": system,
+                    "prompt": prompt,
+                    "response": response,
+                }
+            )
 
     def finalize(
         self, ledger: ClientLedger | None, report: str, problems: list[str], runs_dir: Path
