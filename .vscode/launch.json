@@ -24,17 +24,6 @@
       "justMyCode": true
     },
     {
-      "name": "Generate: unknown-doc demo (discovery + review flags)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "agent_pipeline.generate",
-      "args": ["--client", "demo_unknown"],
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}",
-      "python": "${workspaceFolder}/.venv/bin/python",
-      "justMyCode": true
-    },
-    {
       "name": "Generate: client_01_clean",
       "type": "debugpy",
       "request": "launch",

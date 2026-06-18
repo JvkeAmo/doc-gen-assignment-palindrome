@@ -1,0 +1,162 @@
+{
+  "client": "client_02_medium",
+  "model": "gpt-4o / gpt-4o-mini",
+  "started": "2026-06-17T17:58:07",
+  "total_seconds": 7.39,
+  "stage_seconds": {
+    "triage": 0.0,
+    "ocr": 0.72,
+    "extract": 4.18,
+    "reconcile": 0.0,
+    "generate": 2.46,
+    "verify": 0.0
+  },
+  "llm_seconds_total": 11.42,
+  "llm_call_count": 6,
+  "verification": "PASS",
+  "llm_calls": [
+    {
+      "name": "ocr:statement_summary.png",
+      "seconds": 0.72,
+      "system": "gpt-4o-mini",
+      "prompt": "Extract all text and tables from this account statement image as plain markdown. Include every account name, type, value, and date exactly as shown.",
+      "response": "[image OCR unavailable for statement_summary.png: Error code: 401 - {'error': {'message': \"You have insufficient permissions for this operation. Missing scopes: model.request. Check that you have the correct role in your organization (Reader, Writer, Owner) and project (Member, Owner), and if you're using a restricted API key, that it has the necessary scopes.\", 'type': 'invalid_request_error', 'param': None, 'code': 'missing_scope'}}]"
+    },
+    {
+      "name": "extract:statement",
+      "seconds": 1.13,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this account statement (possibly OCR'd from an image) and extract a live value per account row.\n\nAccounts in the system-of-record database (use these account_ids):\n- H-ISA-D: Stocks & Shares ISA, owner David Clarke, platform Holloway, value 61000 GBP as of 2026-04-30, status open\n- H-GIA-J: General Investment Account, owner Joint, platform Holloway, value 40000 GBP as of 2026-03-15, status open\n- H-ISA-S: Stocks & Shares ISA, owner Susan Clarke, platform Holloway, value 58500 GBP as of 2026-04-30, status open\n\n=== statement ===\n[image OCR unavailable for statement_summary.png: Error code: 401 - {'error': {'message': \"You have insufficient permissions for this operation. Missing scopes: model.request. Check that you have the correct role in your organization (Reader, Writer, Owner) and project (Member, Owner), and if you're using a restricted API key, that it has the necessary scopes.\", 'type': 'invalid_request_error', 'param': None, 'code': 'missing_scope'}}]",
+      "response": "{\"live_values\":[]}"
+    },
+    {
+      "name": "extract:report_request",
+      "seconds": 1.54,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this report-requirement summary (an adviser's instruction sheet) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H-ISA-D: Stocks & Shares ISA, owner David Clarke, platform Holloway, value 61000 GBP as of 2026-04-30, status open\n- H-GIA-J: General Investment Account, owner Joint, platform Holloway, value 40000 GBP as of 2026-03-15, status open\n- H-ISA-S: Stocks & Shares ISA, owner Susan Clarke, platform Holloway, value 58500 GBP as of 2026-04-30, status open\n\n=== report_request ===\nReport Requirement Summary\nAdviser | Daniel Reeves\nAccounts covered | Holloway ISAs (David and Susan) and the joint GIA\nInvestment amount | Full value of the joint GIA\nSource of funds | Joint General Investment Account\nSelling existing investments? | Yes\nProduct recommended | Top up of both Stocks & Shares ISAs\nHeld in single or joint name? | Joint clients, individual ISAs\nAgreed risk profile | 5 (balanced)\nInitial charge | 0%",
+      "response": "{\"client_label\":\"David & Susan Clarke\",\"risk_profile\":\"5 (balanced)\",\"selling\":true,\"initial_charge\":\"0%\",\"scope_account_ids\":[\"H-ISA-D\",\"H-GIA-J\",\"H-ISA-S\"],\"investment_amounts\":[]}"
+    },
+    {
+      "name": "extract:meeting_notes",
+      "seconds": 4.18,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this adviser's free-form meeting note (plus internal data-source notes) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H-ISA-D: Stocks & Shares ISA, owner David Clarke, platform Holloway, value 61000 GBP as of 2026-04-30, status open\n- H-GIA-J: General Investment Account, owner Joint, platform Holloway, value 40000 GBP as of 2026-03-15, status open\n- H-ISA-S: Stocks & Shares ISA, owner Susan Clarke, platform Holloway, value 58500 GBP as of 2026-04-30, status open\n\n=== meeting_notes ===\nReview meeting with David and Susan Clarke, held 14 May 2026.\nBoth are now retired. They confirmed their objectives and circumstances are unchanged since the last review, and both remain comfortable with the balanced approach to risk we agreed.\nWe talked briefly about a holiday they are planning for the autumn; this has no bearing on the advice but they were keen to mention it.\nThe main item was their jointly-held General Investment Account on the Holloway platform. David had been watching it and noted it had recovered well over the spring.\nI pulled the account up live during the meeting. It was showing a little over \u00a345,000, which is up from where it had been earlier in the year when we last looked at the statements.\nDavid and Susan asked whether it was worth keeping the GIA running alongside their ISAs. We discussed the trade-offs and they decided they would rather simplify.\nWe agreed to disinvest the joint GIA in full and use the proceeds to top up both David's and Susan's Stocks & Shares ISAs for the new tax year, split equally between the two ISAs.\nBoth ISAs are already part-funded for the year; this top-up uses the remaining allowance across the two of them.\nNeither has any income requirement from the portfolio at the moment.\nSusan asked what the ongoing charges would look like after the change. I said I would confirm the exact figures in the report rather than quote them from memory in the meeting.\nWe noted that selling down the GIA is a disposal and may have a capital gains position to consider; I will set that out in the report for them.\nNext steps: prepare the advice report covering both ISAs and the joint GIA, and confirm the charges.\n\n=== internal_notes ===\n# Internal notes: data sources\n\nFor whoever configures the report: what each source is, and how they relate.\n\n## The sources\n\n- **client_data_db.json**: a snapshot of the client's accounts taken from our custody systems on a\n  schedule. It carries a `snapshot_date`, and every account carries its own `valuation_date`, the\n  day that figure was last struck. It is the system of record for which accounts exist and who holds\n  them.\n- **meeting_notes.docx**: the adviser's file note from the most recent meeting. A free-form record\n  of what was discussed and what the client decided.\n- **report_request.docx**: the adviser's instruction for this particular report: which accounts to\n  cover and the headline instruction.\n\n## How they fit together\n\nThe db is where account structure and ownership live. The meeting note is where the conversation and\nthe decisions live. The two are produced at different times and for different reasons, so read the\ndate on a figure before you rely on it.\n\n## Account data\n\nAccounts are listed per holder. A jointly-held account is recorded under each holder it belongs to.\nNot every field is populated for every account: a field may be blank where a figure was not captured\nat snapshot time, and an account may carry a status.\n\n",
+      "response": "{\"client_label\":\"David and Susan Clarke\",\"objectives\":[\"both retired\",\"no income required\"],\"actions\":[\"disinvest the joint GIA in full\",\"use proceeds to top up both David's and Susan's Stocks & Shares ISAs\"],\"live_values\":[{\"account_id\":\"H-GIA-J\",\"description\":null,\"value\":45000.0,\"as_of\":\"2026-05-14\",\"note\":\"Observed live during the meeting.\"}],\"external_funds\":[],\"guidance\":[]}"
+    },
+    {
+      "name": "generate:summary",
+      "seconds": 1.39,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nIn two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully.\n\nFacts:\nClient: David & Susan Clarke\nAgreed risk profile: 5 (balanced)\nObjectives / circumstances: both retired; no income required\nAccounts covered (types only): Stocks & Shares ISA, General Investment Account and Stocks & Shares ISA",
+      "response": "David and Susan Clarke are both retired and have indicated that they do not require any income from their investments at this time. With a balanced risk profile of 5, they are looking to manage their assets across their Stocks & Shares ISAs and General Investment Account in a way that aligns with their long-term financial goals."
+    },
+    {
+      "name": "generate:recommendation",
+      "seconds": 2.46,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nDescribe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved only where they are explicitly given. Do NOT compute or assert any new figure (do not add balances together or project future/post-transaction values). Do NOT state numeric fee rates or tax amounts.\n\nFacts:\nRecommended actions:\n- disinvest the joint GIA in full\n- use proceeds to top up both David's and Susan's Stocks & Shares ISAs\nAccount values:\n- Stocks & Shares ISA (H-ISA-D) currently \u00a361,000\n- General Investment Account (H-GIA-J) currently \u00a345,000 (approx.)\n- Stocks & Shares ISA (H-ISA-S) currently \u00a358,500\nNote: the funds to invest come from TWO separate sources \u2014 the new money above AND the proceeds of any account being disinvested (use the account values listed above). State each relevant figure on its own; do NOT add them into a single total.",
+      "response": "You should proceed to disinvest the joint General Investment Account, which currently holds approximately \u00a345,000. The proceeds from this disinvestment will be used to top up both David's and Susan's Stocks & Shares ISAs. \n\nDavid's Stocks & Shares ISA currently has a value of \u00a361,000, while Susan's Stocks & Shares ISA is valued at \u00a358,500. By reallocating the funds from the disinvestment, you can enhance the investment potential within both ISAs, allowing for more effective growth opportunities in the long term."
+    }
+  ],
+  "ledger": {
+    "client": "David & Susan Clarke",
+    "risk_profile": "5 (balanced)",
+    "accounts": [
+      {
+        "account_id": "H-ISA-D",
+        "owner": "David Clarke",
+        "type": "Stocks & Shares ISA",
+        "platform": "Holloway",
+        "value": 61000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "H-GIA-J",
+        "owner": "Joint",
+        "type": "General Investment Account",
+        "platform": "Holloway",
+        "value": 45000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-05-14",
+        "status": "open",
+        "in_scope": true,
+        "approximate": true,
+        "value_source": "observed"
+      },
+      {
+        "account_id": "H-ISA-S",
+        "owner": "Susan Clarke",
+        "type": "Stocks & Shares ISA",
+        "platform": "Holloway",
+        "value": 58500.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      }
+    ],
+    "actions": [
+      {
+        "text": "disinvest the joint GIA in full",
+        "refs": [],
+        "is_disposal": true,
+        "amount": null
+      },
+      {
+        "text": "use proceeds to top up both David's and Susan's Stocks & Shares ISAs",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      }
+    ],
+    "external_funds": [],
+    "disposal": true,
+    "charges": {
+      "initial": "0%",
+      "platform_ongoing": null,
+      "advice_ongoing": null
+    },
+    "gaps": [
+      {
+        "field": "platform charge",
+        "reason": "ongoing platform charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      },
+      {
+        "field": "advice charge",
+        "reason": "ongoing advice charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      },
+      {
+        "field": "capital gains tax",
+        "reason": "liability on the disposal to be confirmed by adviser",
+        "section": "Tax Implications",
+        "review": false
+      }
+    ],
+    "objectives": [
+      "both retired",
+      "no income required"
+    ],
+    "amounts": [],
+    "guidance": [],
+    "conflicts": [
+      {
+        "field": "H-GIA-J.value",
+        "chose": "45000 @ 2026-05-14 (observed)",
+        "over": "40000 @ 2026-03-15 (db snapshot)",
+        "rule": "most-recent-valuation-wins"
+      }
+    ]
+  },
+  "report": "# Investment Advice Report\n\n## Introduction\n\nFurther to our recent discussions, we are writing to set out our advice in relation to your Stocks & Shares ISA and your jointly-held General Investment Account. This advice is based on the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.\n\n## Background & Objectives\n\nDavid and Susan Clarke are both retired and have indicated that they do not require any income from their investments at this time. With a balanced risk profile of 5, they are looking to manage their assets across their Stocks & Shares ISAs and General Investment Account in a way that aligns with their long-term financial goals.\n\nThe accounts covered by this report are as follows:\n\n| Account | Owner | Type | Value |\n|---|---|---|---|\n| H-ISA-D | David Clarke | Stocks & Shares ISA | \u00a361,000 |\n| H-GIA-J | Joint | General Investment Account | \u00a345,000 (approx.) |\n| H-ISA-S | Susan Clarke | Stocks & Shares ISA | \u00a358,500 |\n\n## Recommendations\n\nWe recommend the following:\n\nYou should proceed to disinvest the joint General Investment Account, which currently holds approximately \u00a345,000. The proceeds from this disinvestment will be used to top up both David's and Susan's Stocks & Shares ISAs. \n\nDavid's Stocks & Shares ISA currently has a value of \u00a361,000, while Susan's Stocks & Shares ISA is valued at \u00a358,500. By reallocating the funds from the disinvestment, you can enhance the investment potential within both ISAs, allowing for more effective growth opportunities in the long term.\n\n## Tax Implications\n\nThe recommended disposal may give rise to a capital gains tax liability, which would be assessed against your annual exempt amount.\n\n[FLAG: capital gains tax \u2014 liability on the disposal to be confirmed by adviser]\n\n## Fees & Charges\n\nThe ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0%. [FLAG: platform charge \u2014 ongoing platform charge to confirm] [FLAG: advice charge \u2014 ongoing advice charge to confirm]\n\n## Conclusion\n\nThe value of investments can fall as well as rise and you may get back less than you invest. Past performance is not a guide to future returns.\n\nIf you are happy to proceed with our recommendations, please let us know and we will implement them for you.\n"
+}

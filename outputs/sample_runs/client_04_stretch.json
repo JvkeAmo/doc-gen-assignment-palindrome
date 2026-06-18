@@ -1,0 +1,298 @@
+{
+  "client": "client_04_stretch",
+  "model": "gpt-4o / gpt-4o-mini",
+  "started": "2026-06-17T17:58:23",
+  "total_seconds": 12.11,
+  "stage_seconds": {
+    "triage": 0.0,
+    "ocr": 1.31,
+    "extract": 6.28,
+    "reconcile": 0.0,
+    "generate": 4.49,
+    "verify": 0.0
+  },
+  "llm_seconds_total": 17.32,
+  "llm_call_count": 6,
+  "verification": "PASS",
+  "llm_calls": [
+    {
+      "name": "ocr:statement_summary.png",
+      "seconds": 1.31,
+      "system": "gpt-4o-mini",
+      "prompt": "Extract all text and tables from this account statement image as plain markdown. Include every account name, type, value, and date exactly as shown.",
+      "response": "[image OCR unavailable for statement_summary.png: Error code: 401 - {'error': {'message': \"You have insufficient permissions for this operation. Missing scopes: model.request. Check that you have the correct role in your organization (Reader, Writer, Owner) and project (Member, Owner), and if you're using a restricted API key, that it has the necessary scopes.\", 'type': 'invalid_request_error', 'param': None, 'code': 'missing_scope'}}]"
+    },
+    {
+      "name": "extract:statement",
+      "seconds": 0.98,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this account statement (possibly OCR'd from an image) and extract a live value per account row.\n\nAccounts in the system-of-record database (use these account_ids):\n- H4-ISA-J: Stocks & Shares ISA, owner James Whitmore, platform Holloway, value 85000 GBP as of 2026-04-30, status open\n- H4-GIA-HJ: General Investment Account, owner Joint, platform Holloway, value 240000 GBP as of 2026-02-28, status open\n- B4-SIPP-J: SIPP, owner James Whitmore, platform Brightwell, value 610000 GBP as of 2026-04-30, status open\n- B4-GIA-J: General Investment Account, owner Joint, platform Brightwell, value 95000 GBP as of 2026-04-30, status open\n- M4-BOND-J: Offshore Investment Bond, owner Joint, platform Meridian, value 180000 GBP as of 2026-04-30, status open\n- M4-CASH-J: Cash Account, owner James Whitmore, platform Meridian, value 30000 GBP as of 2026-04-30, status open\n- H4-ISA-C: Stocks & Shares ISA, owner Caroline Whitmore, platform Holloway, value 82000 GBP as of 2026-04-30, status open\n- B4-SIPP-C: SIPP, owner Caroline Whitmore, platform Brightwell, value 430000 GBP as of 2026-04-30, status open\n- M4-CASH-C: Cash Account, owner Caroline Whitmore, platform Meridian, value blank as of None, status open\n- M4-OLD-C: Cash Account, owner Caroline Whitmore, platform Meridian, value 0 GBP as of 2025-11-30, status closed\n\n=== statement ===\n[image OCR unavailable for statement_summary.png: Error code: 401 - {'error': {'message': \"You have insufficient permissions for this operation. Missing scopes: model.request. Check that you have the correct role in your organization (Reader, Writer, Owner) and project (Member, Owner), and if you're using a restricted API key, that it has the necessary scopes.\", 'type': 'invalid_request_error', 'param': None, 'code': 'missing_scope'}}]",
+      "response": "{\"live_values\":[]}"
+    },
+    {
+      "name": "extract:report_request",
+      "seconds": 2.72,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this report-requirement summary (an adviser's instruction sheet) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H4-ISA-J: Stocks & Shares ISA, owner James Whitmore, platform Holloway, value 85000 GBP as of 2026-04-30, status open\n- H4-GIA-HJ: General Investment Account, owner Joint, platform Holloway, value 240000 GBP as of 2026-02-28, status open\n- B4-SIPP-J: SIPP, owner James Whitmore, platform Brightwell, value 610000 GBP as of 2026-04-30, status open\n- B4-GIA-J: General Investment Account, owner Joint, platform Brightwell, value 95000 GBP as of 2026-04-30, status open\n- M4-BOND-J: Offshore Investment Bond, owner Joint, platform Meridian, value 180000 GBP as of 2026-04-30, status open\n- M4-CASH-J: Cash Account, owner James Whitmore, platform Meridian, value 30000 GBP as of 2026-04-30, status open\n- H4-ISA-C: Stocks & Shares ISA, owner Caroline Whitmore, platform Holloway, value 82000 GBP as of 2026-04-30, status open\n- B4-SIPP-C: SIPP, owner Caroline Whitmore, platform Brightwell, value 430000 GBP as of 2026-04-30, status open\n- M4-CASH-C: Cash Account, owner Caroline Whitmore, platform Meridian, value blank as of None, status open\n- M4-OLD-C: Cash Account, owner Caroline Whitmore, platform Meridian, value 0 GBP as of 2025-11-30, status closed\n\n=== report_request ===\nReport Requirement Summary\nAdviser | Daniel Reeves\nAccounts covered | Holloway ISAs (James and Caroline), Brightwell SIPPs (James and Caroline), the joint GIAs (Holloway and Brightwell), the Meridian offshore bond, plus a new joint account for the proceeds\nInvestment amount | Proceeds from the recent business sale (see meeting notes)\nSource of funds | Proceeds from the sale of the client's business\nSelling existing investments? | Yes (partial rebalance of the Holloway joint GIA)\nProduct recommended | ISA and SIPP top-ups, contribution to the joint GIA, and a new joint investment account\nHeld in single or joint name? | Joint clients; a mix of individual and joint accounts\nAgreed risk profile | 4 (balanced to moderate)\nInitial charge | 0.5%",
+      "response": "{\"client_label\":\"James & Caroline Whitmore\",\"risk_profile\":\"4 (balanced to moderate)\",\"selling\":true,\"initial_charge\":\"0.5%\",\"scope_account_ids\":[\"H4-ISA-J\",\"H4-ISA-C\",\"B4-SIPP-J\",\"B4-SIPP-C\",\"H4-GIA-HJ\",\"B4-GIA-J\",\"M4-BOND-J\"],\"investment_amounts\":[]}"
+    },
+    {
+      "name": "extract:meeting_notes",
+      "seconds": 6.28,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this adviser's free-form meeting note (plus internal data-source notes) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H4-ISA-J: Stocks & Shares ISA, owner James Whitmore, platform Holloway, value 85000 GBP as of 2026-04-30, status open\n- H4-GIA-HJ: General Investment Account, owner Joint, platform Holloway, value 240000 GBP as of 2026-02-28, status open\n- B4-SIPP-J: SIPP, owner James Whitmore, platform Brightwell, value 610000 GBP as of 2026-04-30, status open\n- B4-GIA-J: General Investment Account, owner Joint, platform Brightwell, value 95000 GBP as of 2026-04-30, status open\n- M4-BOND-J: Offshore Investment Bond, owner Joint, platform Meridian, value 180000 GBP as of 2026-04-30, status open\n- M4-CASH-J: Cash Account, owner James Whitmore, platform Meridian, value 30000 GBP as of 2026-04-30, status open\n- H4-ISA-C: Stocks & Shares ISA, owner Caroline Whitmore, platform Holloway, value 82000 GBP as of 2026-04-30, status open\n- B4-SIPP-C: SIPP, owner Caroline Whitmore, platform Brightwell, value 430000 GBP as of 2026-04-30, status open\n- M4-CASH-C: Cash Account, owner Caroline Whitmore, platform Meridian, value blank as of None, status open\n- M4-OLD-C: Cash Account, owner Caroline Whitmore, platform Meridian, value 0 GBP as of 2025-11-30, status closed\n\n=== meeting_notes ===\nPlanning meeting with James and Caroline Whitmore, held 20 May 2026. This was a long meeting covering the recent sale of James's business and what to do with the proceeds.\nBy way of background: James completed the sale of his company in April. It has been a busy and slightly emotional period for them both, having built the business over many years.\nThe headline structure of the deal: a completion payment of \u00a3850,000 was received on completion and is currently sitting in a solicitor's client account ready to be moved.\nOn top of the completion payment, the deal includes a deferred earnout of up to \u00a3400,000, payable over the next two years and contingent on the business hitting agreed revenue targets. None of the earnout has been received yet, and James was clear it is not guaranteed; it depends entirely on how the business performs under the new owners.\nImportant point on the completion money: \u00a3200,000 of the \u00a3850,000 is already committed to repaying a bridging loan James took out last year against the business. That repayment is due shortly.\nJames and Caroline's objectives are long-term growth with a balanced-to-moderate risk appetite. They have no income requirement from the portfolio currently; James may do some consultancy work but nothing is settled.\nTheir overriding objective for this money is clear: to build a tax-efficient base that can replace James's income when he steps back from full-time work in about three years. We agreed everything we recommend should be weighed against that three-year goal.\nThey mentioned they would like, at some stage, to help with school fees for their grandchildren and possibly make a charitable donation. Both were clear these are aspirations for the future and nothing should be actioned on them in this report.\nWe then went through the existing portfolio, which is spread across three platforms. I had the latest snapshot in front of me but we cross-checked some of it live.\nOn the Holloway platform they each hold a Stocks & Shares ISA, and there is a jointly-held General Investment Account. The joint GIA is the one that has moved most: pulling it up live, it was showing around \u00a3255,000. That is noticeably higher than the figure on the snapshot I had, which was struck back in February before the spring run-up.\nOn the Brightwell platform James holds a SIPP and Caroline holds a SIPP. There is also a second jointly-held General Investment Account on Brightwell. These were all in line with the snapshot and we did not see any need to revise them.\nOn the Meridian platform there is a jointly-held offshore investment bond, and James holds a cash account there. Caroline also has a cash account on Meridian, but she could not remember the balance and thought it might be fairly small; she will confirm it for us.\nCaroline also mentioned an old Meridian account in her name that was closed last year; that one has nothing in it and can be disregarded. I noted it only so we do not chase a balance that does not exist.\nOn the plan for the available proceeds: we agreed to use both ISA allowances for the new tax year, make pension contributions into both SIPPs up to the appropriate level, add to the Holloway joint GIA, and place the remaining balance into a new jointly-held investment account.\nAs part of tidying up, we agreed to disinvest a portion of the Holloway joint GIA and rebalance it; that sale is a disposal and will have a capital gains position to set out.\nCaroline asked about the total ongoing cost of all this across the three platforms. I said I would set out the charges in the report once I had verified each platform's figures rather than estimate them in the meeting.\nWe also briefly discussed the offshore bond and whether it still suited them; we agreed to leave it as it is for now and revisit at the next review.\nJames raised that he had read something about pension allowances in the press and was worried about over-contributing. I reassured him we would size the SIPP contributions appropriately and that the report would not commit to a figure that breached the limits.\nThere was a tangent about a property in France they had once considered buying; this is not being pursued and has no bearing on the advice.\nTo summarise the actions I noted: confirm Caroline's Meridian cash balance, and confirm the timing of the bridging-loan repayment.\nNext steps: prepare the advice report covering the ISAs, the SIPPs, the joint GIAs, the offshore bond and the new joint account, and the investment of the completion proceeds.\n\n=== internal_notes ===\n# Internal notes: data sources\n\nFor whoever configures the report: what each source is, and how they relate.\n\n## The sources\n\n- **client_data_db.json**: a snapshot of the client's accounts taken from our custody systems on a\n  schedule. It carries a `snapshot_date`, and every account carries its own `valuation_date`, the\n  day that figure was last struck. It is the system of record for which accounts exist and who holds\n  them.\n- **meeting_notes.docx**: the adviser's file note from the most recent meeting. A free-form record\n  of what was discussed and what the client decided.\n- **report_request.docx**: the adviser's instruction for this particular report: which accounts to\n  cover and the headline instruction.\n\n## How they fit together\n\nThe db is where account structure and ownership live. The meeting note is where the conversation and\nthe decisions live. The two are produced at different times and for different reasons, so read the\ndate on a figure before you rely on it.\n\n## Account data\n\nAccounts are listed per holder. A jointly-held account is recorded under each holder it belongs to.\nNot every field is populated for every account: a field may be blank where a figure was not captured\nat snapshot time, and an account may carry a status.\n\n## This client\nThe client holds accounts across more than one platform. He recently sold a business, and the proceeds arrive in more than one form and on more than one date; the meeting note has the detail.\n\n",
+      "response": "{\"client_label\":\"James and Caroline Whitmore\",\"objectives\":[\"long-term growth\",\"balanced-to-moderate risk appetite\",\"no income requirement\",\"build a tax-efficient base to replace income in three years\"],\"actions\":[\"use both ISA allowances for the new tax year\",\"make pension contributions into both SIPPs\",\"add to the Holloway joint GIA\",\"place remaining balance into a new jointly-held investment account\",\"disinvest a portion of the Holloway joint GIA and rebalance it\"],\"live_values\":[{\"account_id\":\"H4-GIA-HJ\",\"description\":null,\"value\":255000.0,\"as_of\":\"2026-05-20\",\"note\":\"Updated live value during meeting.\"}],\"external_funds\":[{\"label\":\"Completion payment\",\"amount\":850000.0,\"kind\":\"available\",\"note\":\"Received on completion, sitting in solicitor's client account.\"},{\"label\":\"Deferred earnout\",\"amount\":400000.0,\"kind\":\"contingent\",\"note\":\"Payable over next two years, contingent on revenue targets.\"},{\"label\":\"Bridging loan repayment\",\"amount\":200000.0,\"kind\":\"committed\",\"note\":\"Part of completion payment committed to repay this loan.\"}],\"guidance\":[\"Sale of James's business and emotional period following it\",\"Completion payment and earnout details\",\"Bridging loan repayment commitment\"]}"
+    },
+    {
+      "name": "generate:summary",
+      "seconds": 1.54,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nIn two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully.\n\nFacts:\nClient: James & Caroline Whitmore\nAgreed risk profile: 4 (balanced to moderate)\nObjectives / circumstances: long-term growth; balanced-to-moderate risk appetite; no income requirement; build a tax-efficient base to replace income in three years\nSensitive guidance to reflect tactfully: Sale of James's business and emotional period following it; Completion payment and earnout details; Bridging loan repayment commitment\nAccounts covered (types only): Stocks & Shares ISA, General Investment Account, SIPP, General Investment Account, Offshore Investment Bond, Stocks & Shares ISA and SIPP",
+      "response": "James and Caroline Whitmore are focused on achieving long-term growth while maintaining a balanced-to-moderate risk profile. With no immediate income requirements, they aim to build a tax-efficient investment base to replace income in three years, particularly in light of the recent sale of James's business and the associated emotional transition. Additionally, they have a commitment to repay a bridging loan, which will be a consideration in their financial planning."
+    },
+    {
+      "name": "generate:recommendation",
+      "seconds": 4.49,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nDescribe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved only where they are explicitly given. Do NOT compute or assert any new figure (do not add balances together or project future/post-transaction values). Do NOT state numeric fee rates or tax amounts.\n\nFacts:\nRecommended actions:\n- use both ISA allowances for the new tax year\n- make pension contributions into both SIPPs\n- add to the Holloway joint GIA\n- place remaining balance into a new jointly-held investment account\n- disinvest a portion of the Holloway joint GIA and rebalance it\nAccount values:\n- Stocks & Shares ISA (H4-ISA-J) currently \u00a385,000\n- General Investment Account (H4-GIA-HJ) currently \u00a3255,000 (approx.)\n- SIPP (B4-SIPP-J) currently \u00a3610,000\n- General Investment Account (B4-GIA-J) currently \u00a395,000\n- Offshore Investment Bond (M4-BOND-J) currently \u00a3180,000\n- Stocks & Shares ISA (H4-ISA-C) currently \u00a382,000\n- SIPP (B4-SIPP-C) currently \u00a3430,000\nAmounts involved: \u00a3650,000\nNew money available to invest (separate from the existing accounts above):\n- Completion payment: \u00a3850,000 [available]\n- Deferred earnout: \u00a3400,000 [contingent]\n- Bridging loan repayment: \u00a3200,000 [committed]\n- => new money available to invest now (excludes any disposal proceeds): \u00a3650,000\nNote: the funds to invest come from TWO separate sources \u2014 the new money above AND the proceeds of any account being disinvested (use the account values listed above). State each relevant figure on its own; do NOT add them into a single total.",
+      "response": "To optimise your investment strategy for the new tax year, we recommend that you take the following actions. \n\nFirstly, utilise both of your ISA allowances. This will allow you to shelter more of your investments from tax, maximising your potential returns. You currently have \u00a385,000 in your Stocks & Shares ISA (H4-ISA-J) and \u00a382,000 in your other Stocks & Shares ISA (H4-ISA-C). \n\nNext, we advise making pension contributions into both of your SIPPs. You have \u00a3610,000 in your SIPP (B4-SIPP-J) and \u00a3430,000 in your other SIPP (B4-SIPP-C). Contributing to your pensions can provide significant tax advantages and help secure your financial future.\n\nAdditionally, consider adding to the Holloway joint General Investment Account (H4-GIA-HJ), which currently holds approximately \u00a3255,000. This will enhance your investment portfolio and provide further growth opportunities.\n\nAfter these contributions, you should place the remaining balance into a new jointly-held investment account. This will allow for flexibility and diversification in your investment strategy.\n\nFinally, we recommend disinvesting a portion of the Holloway joint GIA and rebalancing it. This will help to ensure that your investment allocation aligns with your risk tolerance and financial goals.\n\nIn total, you have \u00a3650,000 available to invest now, which comes from the completion payment. This amount, along with the proceeds from any disinvested accounts, will provide you with the necessary funds to implement these recommendations effectively."
+    }
+  ],
+  "ledger": {
+    "client": "James & Caroline Whitmore",
+    "risk_profile": "4 (balanced to moderate)",
+    "accounts": [
+      {
+        "account_id": "H4-ISA-J",
+        "owner": "James Whitmore",
+        "type": "Stocks & Shares ISA",
+        "platform": "Holloway",
+        "value": 85000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "H4-GIA-HJ",
+        "owner": "Joint",
+        "type": "General Investment Account",
+        "platform": "Holloway",
+        "value": 255000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-05-20",
+        "status": "open",
+        "in_scope": true,
+        "approximate": true,
+        "value_source": "observed"
+      },
+      {
+        "account_id": "B4-SIPP-J",
+        "owner": "James Whitmore",
+        "type": "SIPP",
+        "platform": "Brightwell",
+        "value": 610000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "B4-GIA-J",
+        "owner": "Joint",
+        "type": "General Investment Account",
+        "platform": "Brightwell",
+        "value": 95000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "M4-BOND-J",
+        "owner": "Joint",
+        "type": "Offshore Investment Bond",
+        "platform": "Meridian",
+        "value": 180000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "M4-CASH-J",
+        "owner": "James Whitmore",
+        "type": "Cash Account",
+        "platform": "Meridian",
+        "value": 30000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": false,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "H4-ISA-C",
+        "owner": "Caroline Whitmore",
+        "type": "Stocks & Shares ISA",
+        "platform": "Holloway",
+        "value": 82000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "B4-SIPP-C",
+        "owner": "Caroline Whitmore",
+        "type": "SIPP",
+        "platform": "Brightwell",
+        "value": 430000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "M4-CASH-C",
+        "owner": "Caroline Whitmore",
+        "type": "Cash Account",
+        "platform": "Meridian",
+        "value": null,
+        "currency": "GBP",
+        "valuation_date": null,
+        "status": "open",
+        "in_scope": false,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "M4-OLD-C",
+        "owner": "Caroline Whitmore",
+        "type": "Cash Account",
+        "platform": "Meridian",
+        "value": 0.0,
+        "currency": "GBP",
+        "valuation_date": "2025-11-30",
+        "status": "closed",
+        "in_scope": false,
+        "approximate": false,
+        "value_source": "db"
+      }
+    ],
+    "actions": [
+      {
+        "text": "use both ISA allowances for the new tax year",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      },
+      {
+        "text": "make pension contributions into both SIPPs",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      },
+      {
+        "text": "add to the Holloway joint GIA",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      },
+      {
+        "text": "place remaining balance into a new jointly-held investment account",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      },
+      {
+        "text": "disinvest a portion of the Holloway joint GIA and rebalance it",
+        "refs": [],
+        "is_disposal": true,
+        "amount": null
+      }
+    ],
+    "external_funds": [
+      {
+        "label": "Completion payment",
+        "amount": 850000.0,
+        "kind": "available",
+        "note": "Received on completion, sitting in solicitor's client account."
+      },
+      {
+        "label": "Deferred earnout",
+        "amount": 400000.0,
+        "kind": "contingent",
+        "note": "Payable over next two years, contingent on revenue targets."
+      },
+      {
+        "label": "Bridging loan repayment",
+        "amount": 200000.0,
+        "kind": "committed",
+        "note": "Part of completion payment committed to repay this loan."
+      }
+    ],
+    "disposal": true,
+    "charges": {
+      "initial": "0.5%",
+      "platform_ongoing": null,
+      "advice_ongoing": null
+    },
+    "gaps": [
+      {
+        "field": "platform charge",
+        "reason": "ongoing platform charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      },
+      {
+        "field": "advice charge",
+        "reason": "ongoing advice charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      },
+      {
+        "field": "capital gains tax",
+        "reason": "liability on the disposal to be confirmed by adviser",
+        "section": "Tax Implications",
+        "review": false
+      }
+    ],
+    "objectives": [
+      "long-term growth",
+      "balanced-to-moderate risk appetite",
+      "no income requirement",
+      "build a tax-efficient base to replace income in three years"
+    ],
+    "amounts": [
+      650000.0
+    ],
+    "guidance": [
+      "Sale of James's business and emotional period following it",
+      "Completion payment and earnout details",
+      "Bridging loan repayment commitment"
+    ],
+    "conflicts": [
+      {
+        "field": "H4-GIA-HJ.value",
+        "chose": "255000 @ 2026-05-20 (observed)",
+        "over": "240000 @ 2026-02-28 (db snapshot)",
+        "rule": "most-recent-valuation-wins"
+      }
+    ]
+  },
+  "report": "# Investment Advice Report\n\n## Introduction\n\nFurther to our recent discussions, we are writing to set out our advice in relation to your Stocks & Shares ISA, your jointly-held General Investment Account, your SIPP and your jointly-held Offshore Investment Bond. This advice is based on the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.\n\n## Background & Objectives\n\nJames and Caroline Whitmore are focused on achieving long-term growth while maintaining a balanced-to-moderate risk profile. With no immediate income requirements, they aim to build a tax-efficient investment base to replace income in three years, particularly in light of the recent sale of James's business and the associated emotional transition. Additionally, they have a commitment to repay a bridging loan, which will be a consideration in their financial planning.\n\nThe accounts covered by this report are as follows:\n\n| Account | Owner | Type | Value |\n|---|---|---|---|\n| H4-ISA-J | James Whitmore | Stocks & Shares ISA | \u00a385,000 |\n| H4-GIA-HJ | Joint | General Investment Account | \u00a3255,000 (approx.) |\n| B4-SIPP-J | James Whitmore | SIPP | \u00a3610,000 |\n| B4-GIA-J | Joint | General Investment Account | \u00a395,000 |\n| M4-BOND-J | Joint | Offshore Investment Bond | \u00a3180,000 |\n| H4-ISA-C | Caroline Whitmore | Stocks & Shares ISA | \u00a382,000 |\n| B4-SIPP-C | Caroline Whitmore | SIPP | \u00a3430,000 |\n\n## Recommendations\n\nWe recommend the following:\n\nTo optimise your investment strategy for the new tax year, we recommend that you take the following actions. \n\nFirstly, utilise both of your ISA allowances. This will allow you to shelter more of your investments from tax, maximising your potential returns. You currently have \u00a385,000 in your Stocks & Shares ISA (H4-ISA-J) and \u00a382,000 in your other Stocks & Shares ISA (H4-ISA-C). \n\nNext, we advise making pension contributions into both of your SIPPs. You have \u00a3610,000 in your SIPP (B4-SIPP-J) and \u00a3430,000 in your other SIPP (B4-SIPP-C). Contributing to your pensions can provide significant tax advantages and help secure your financial future.\n\nAdditionally, consider adding to the Holloway joint General Investment Account (H4-GIA-HJ), which currently holds approximately \u00a3255,000. This will enhance your investment portfolio and provide further growth opportunities.\n\nAfter these contributions, you should place the remaining balance into a new jointly-held investment account. This will allow for flexibility and diversification in your investment strategy.\n\nFinally, we recommend disinvesting a portion of the Holloway joint GIA and rebalancing it. This will help to ensure that your investment allocation aligns with your risk tolerance and financial goals.\n\nIn total, you have \u00a3650,000 available to invest now, which comes from the completion payment. This amount, along with the proceeds from any disinvested accounts, will provide you with the necessary funds to implement these recommendations effectively.\n\n## Tax Implications\n\nThe recommended disposal may give rise to a capital gains tax liability, which would be assessed against your annual exempt amount.\n\n[FLAG: capital gains tax \u2014 liability on the disposal to be confirmed by adviser]\n\n## Fees & Charges\n\nThe ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0.5%. [FLAG: platform charge \u2014 ongoing platform charge to confirm] [FLAG: advice charge \u2014 ongoing advice charge to confirm]\n\n## Next Steps\n\nBefore we finalise, there are some outstanding items to confirm:\n\n- You also hold a Cash Account (M4-CASH-J, \u00a330,000) that is not covered by this report. Please confirm whether it should be included or reviewed separately.\n- You also hold a Cash Account (M4-CASH-C, balance to be confirmed) that is not covered by this report. Please confirm whether it should be included or reviewed separately.\n\n## Conclusion\n\nThe value of investments can fall as well as rise and you may get back less than you invest. Past performance is not a guide to future returns.\n\nIf you are happy to proceed with our recommendations, please let us know and we will implement them for you.\n"
+}

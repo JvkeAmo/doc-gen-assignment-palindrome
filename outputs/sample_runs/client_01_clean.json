@@ -1,0 +1,118 @@
+{
+  "client": "client_01_clean",
+  "model": "gpt-4o / gpt-4o-mini",
+  "started": "2026-06-17T17:58:02",
+  "total_seconds": 4.54,
+  "stage_seconds": {
+    "triage": 0.0,
+    "extract": 2.79,
+    "reconcile": 0.0,
+    "generate": 1.75,
+    "verify": 0.0
+  },
+  "llm_seconds_total": 7.98,
+  "llm_call_count": 4,
+  "verification": "PASS",
+  "llm_calls": [
+    {
+      "name": "extract:report_request",
+      "seconds": 1.81,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this report-requirement summary (an adviser's instruction sheet) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H-ISA-01: Stocks & Shares ISA, owner Margaret Hughes, platform Holloway, value 52000 GBP as of 2026-04-30, status open\n- H-CASH-01: Cash Account, owner Margaret Hughes, platform Holloway, value 25000 GBP as of 2026-04-30, status open\n\n=== report_request ===\nReport Requirement Summary\nAdviser | Daniel Reeves\nAccounts covered | Holloway Stocks & Shares ISA\nInvestment amount | GBP 20,000\nSource of funds | Cash held on deposit in the Holloway cash account\nSelling existing investments? | No\nProduct recommended | Top up of existing Stocks & Shares ISA\nHeld in single or joint name? | Single\nAgreed risk profile | 4 (moderate)\nInitial charge | 0%",
+      "response": "{\"client_label\":\"Margaret Hughes\",\"risk_profile\":\"4 (moderate)\",\"selling\":false,\"initial_charge\":\"0%\",\"scope_account_ids\":[\"H-ISA-01\"],\"investment_amounts\":[20000.0]}"
+    },
+    {
+      "name": "extract:meeting_notes",
+      "seconds": 2.79,
+      "system": "You extract structured facts from UK financial-adviser documents into the given schema. Never invent figures: if a value is not stated, leave it null/empty. Do not include capital gains tax amounts or fee rates (a person finalises those).",
+      "prompt": "Read this adviser's free-form meeting note (plus internal data-source notes) and extract its facts.\n\nAccounts in the system-of-record database (use these account_ids):\n- H-ISA-01: Stocks & Shares ISA, owner Margaret Hughes, platform Holloway, value 52000 GBP as of 2026-04-30, status open\n- H-CASH-01: Cash Account, owner Margaret Hughes, platform Holloway, value 25000 GBP as of 2026-04-30, status open\n\n=== meeting_notes ===\nAnnual review meeting with Margaret Hughes, held 12 May 2026 at our offices.\nMargaret is retired and confirmed there have been no changes to her circumstances or objectives since last year's review. She remains comfortable with the moderate approach to risk we agreed previously and was happy that the portfolio had performed in line with that.\nWe spent a little time talking through the market commentary I had sent ahead of the meeting; Margaret had read it and had no concerns or questions arising from it.\nHer main point for the meeting was that she has cash sitting on deposit in her Holloway cash account and would like to use this year's ISA allowance by moving some of it into her Stocks & Shares ISA.\nWe agreed she would move \u00a320,000 from the cash account into the Stocks & Shares ISA. No investments are being sold to do this; it is simply moving available cash into the ISA wrapper, so there is no disposal involved.\nMargaret has no income requirement from the portfolio at present and does not expect that to change in the near term.\nShe mentioned she may want to discuss gifting to her grandchildren at some point in the future, but was clear that is not for today and nothing should be actioned on it now.\nNext steps: I will prepare the advice report covering the ISA top-up and confirm the ongoing charges with her once the report is issued.\n\n=== internal_notes ===\n# Internal notes: data sources\n\nFor whoever configures the report: what each source is, and how they relate.\n\n## The sources\n\n- **client_data_db.json**: a snapshot of the client's accounts taken from our custody systems on a\n  schedule. It carries a `snapshot_date`, and every account carries its own `valuation_date`, the\n  day that figure was last struck. It is the system of record for which accounts exist and who holds\n  them.\n- **meeting_notes.docx**: the adviser's file note from the most recent meeting. A free-form record\n  of what was discussed and what the client decided.\n- **report_request.docx**: the adviser's instruction for this particular report: which accounts to\n  cover and the headline instruction.\n\n## How they fit together\n\nThe db is where account structure and ownership live. The meeting note is where the conversation and\nthe decisions live. The two are produced at different times and for different reasons, so read the\ndate on a figure before you rely on it.\n\n## Account data\n\nAccounts are listed per holder. A jointly-held account is recorded under each holder it belongs to.\nNot every field is populated for every account: a field may be blank where a figure was not captured\nat snapshot time, and an account may carry a status.\n\n\n## Figures a person finalises\n\nSome numbers are not ours to produce in the draft. The capital gains tax on any disposal, and the\nplatform and adviser fee rates, are confirmed or inserted by a person before the report goes to the\nclient, so the draft must not estimate or invent them. We do need a way to flag these clearly for\nmanual review in the output, so whoever finalises the report can see exactly what is outstanding and\nfill it in. How you mark them is your call, but a number we made up must never reach the client, and\nthe gaps must not be hidden.\n\n## The FCA line\n\nThere is a standard line about FCA authorisation that has to appear in the report word for word. I\nhave already put it into the template config as static text, so leave it exactly as it is: do not\nparaphrase it, and do not let the model rewrite it when you change how the sections are generated.\n\n",
+      "response": "{\"client_label\":\"Margaret Hughes\",\"objectives\":[\"retired\",\"comfortable with moderate risk\",\"no income required\"],\"actions\":[\"move \u00a320,000 from Holloway cash account to Stocks & Shares ISA\"],\"live_values\":[],\"external_funds\":[],\"guidance\":[]}"
+    },
+    {
+      "name": "generate:summary",
+      "seconds": 1.64,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nIn two or three sentences, summarise the client's objectives and circumstances at a HIGH LEVEL. Do NOT state any specific transaction amounts, top-up sizes, sale proceeds, or tax figures. If sensitive guidance is provided (e.g. an inheritance following a death), reflect it tactfully.\n\nFacts:\nClient: Margaret Hughes\nAgreed risk profile: 4 (moderate)\nObjectives / circumstances: retired; comfortable with moderate risk; no income required\nAccounts covered (types only): Stocks & Shares ISA",
+      "response": "You are a retired individual with a moderate risk profile, comfortable with taking on some level of risk in your investments. As you do not require any income from your investments at this time, your focus is on managing your Stocks & Shares ISA to align with your financial objectives."
+    },
+    {
+      "name": "generate:recommendation",
+      "seconds": 1.74,
+      "system": null,
+      "prompt": "You are writing one section of a financial advice report addressed to the client. Write in clear British English: refer to the client as 'you'/'your' and to our firm as 'we'/'our'. Output only the prose for this section: no headings, no preamble, no tables. Use only the facts provided. Never invent figures, fee rates, or tax amounts.\n\nDescribe what the client should do and why, using only the recommended actions, account values, and other funds provided. State the amounts involved only where they are explicitly given. Do NOT compute or assert any new figure (do not add balances together or project future/post-transaction values). Do NOT state numeric fee rates or tax amounts.\n\nFacts:\nRecommended actions:\n- move \u00a320,000 from Holloway cash account to Stocks & Shares ISA\nAccount values:\n- Stocks & Shares ISA (H-ISA-01) currently \u00a352,000\nAmounts involved: \u00a320,000",
+      "response": "You should move \u00a320,000 from your Holloway cash account to your Stocks & Shares ISA. This action will enhance your investment portfolio by increasing the amount held within your ISA, which can provide you with potential growth opportunities. By transferring this amount, you can take advantage of the tax-efficient benefits that an ISA offers, allowing your investments to grow without incurring tax on any gains. This strategic move aligns with our goal of optimising your financial position and maximising your investment potential."
+    }
+  ],
+  "ledger": {
+    "client": "Margaret Hughes",
+    "risk_profile": "4 (moderate)",
+    "accounts": [
+      {
+        "account_id": "H-ISA-01",
+        "owner": "Margaret Hughes",
+        "type": "Stocks & Shares ISA",
+        "platform": "Holloway",
+        "value": 52000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": true,
+        "approximate": false,
+        "value_source": "db"
+      },
+      {
+        "account_id": "H-CASH-01",
+        "owner": "Margaret Hughes",
+        "type": "Cash Account",
+        "platform": "Holloway",
+        "value": 25000.0,
+        "currency": "GBP",
+        "valuation_date": "2026-04-30",
+        "status": "open",
+        "in_scope": false,
+        "approximate": false,
+        "value_source": "db"
+      }
+    ],
+    "actions": [
+      {
+        "text": "move \u00a320,000 from Holloway cash account to Stocks & Shares ISA",
+        "refs": [],
+        "is_disposal": false,
+        "amount": null
+      }
+    ],
+    "external_funds": [],
+    "disposal": false,
+    "charges": {
+      "initial": "0%",
+      "platform_ongoing": null,
+      "advice_ongoing": null
+    },
+    "gaps": [
+      {
+        "field": "platform charge",
+        "reason": "ongoing platform charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      },
+      {
+        "field": "advice charge",
+        "reason": "ongoing advice charge to confirm",
+        "section": "Fees & Charges",
+        "review": false
+      }
+    ],
+    "objectives": [
+      "retired",
+      "comfortable with moderate risk",
+      "no income required"
+    ],
+    "amounts": [
+      20000.0
+    ],
+    "guidance": [],
+    "conflicts": []
+  },
+  "report": "# Investment Advice Report\n\n## Introduction\n\nFurther to our recent discussions, we are writing to set out our advice in relation to your Stocks & Shares ISA. This advice is based on the information currently available to us.\n\nThis firm is authorised and regulated by the Financial Conduct Authority.\n\n## Background & Objectives\n\nYou are a retired individual with a moderate risk profile, comfortable with taking on some level of risk in your investments. As you do not require any income from your investments at this time, your focus is on managing your Stocks & Shares ISA to align with your financial objectives.\n\nThe accounts covered by this report are as follows:\n\n| Account | Owner | Type | Value |\n|---|---|---|---|\n| H-ISA-01 | Margaret Hughes | Stocks & Shares ISA | \u00a352,000 |\n\n## Recommendations\n\nWe recommend the following:\n\nYou should move \u00a320,000 from your Holloway cash account to your Stocks & Shares ISA. This action will enhance your investment portfolio by increasing the amount held within your ISA, which can provide you with potential growth opportunities. By transferring this amount, you can take advantage of the tax-efficient benefits that an ISA offers, allowing your investments to grow without incurring tax on any gains. This strategic move aligns with our goal of optimising your financial position and maximising your investment potential.\n\n## Fees & Charges\n\nThe ongoing charges that apply are the platform charge levied by the platform and our ongoing advice charge. The initial charge on this recommendation is 0%. [FLAG: platform charge \u2014 ongoing platform charge to confirm] [FLAG: advice charge \u2014 ongoing advice charge to confirm]\n\n## Next Steps\n\nBefore we finalise, there are some outstanding items to confirm:\n\n- You also hold a Cash Account (H-CASH-01, \u00a325,000) that is not covered by this report. Please confirm whether it should be included or reviewed separately.\n\n## Conclusion\n\nThe value of investments can fall as well as rise and you may get back less than you invest. Past performance is not a guide to future returns.\n\nIf you are happy to proceed with our recommendations, please let us know and we will implement them for you.\n"
+}
